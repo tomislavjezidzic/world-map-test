@@ -27,17 +27,17 @@ const ThreeDMap = ({}: ThreeDMapProps) => {
     const handleRef = useCallback(() => {
         if (globeRef.current) {
             console.log(globeRef);
-            // globeRef.current.controls().autoRotate = true;
-            // setGlobeSpeed(0.2);
-            // globeRef.current.controls().enableZoom = false;
+            globeRef.current.controls().autoRotate = true;
+            setGlobeSpeed(0.2);
+            globeRef.current.controls().enableZoom = false;
         }
     }, []);
 
     useEffect(() => {
         if (globeRef.current) {
-            // globeRef.current.controls().autoRotate = true;
-            // globeRef.current.controls().autoRotateSpeed = globeSpeed;
-            // globeRef.current.controls().enableZoom = false;
+            globeRef.current.controls().autoRotate = true;
+            globeRef.current.controls().autoRotateSpeed = globeSpeed;
+            globeRef.current.controls().enableZoom = false;
         }
     }, [globeRef.current, globeSpeed]);
 
@@ -51,8 +51,8 @@ const ThreeDMap = ({}: ThreeDMapProps) => {
                 polygonSideColor={() => 'transparent'}
                 polygonStrokeColor={() => 'red'}
                 pointsData={populationData}
-                pointLat={d => d.lat}
-                pointLng={d => d.lng}
+                pointLat={d => d?.lat}
+                pointLng={d => d?.lng}
                 pointAltitude={0}
                 pointRadius={0.1}
                 pointColor={() => 'white'}
