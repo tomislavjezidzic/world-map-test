@@ -1,7 +1,7 @@
-import GlobeTmpl from 'react-globe.gl';
+import dynamic from 'next/dynamic';
 
-const Globe = ({ forwardRef, ...otherProps }: any) => (
-    <GlobeTmpl {...otherProps} ref={forwardRef} />
-);
+const Globe = dynamic(() => import('react-globe.gl'), {
+    ssr: false,
+});
 
 export default Globe;

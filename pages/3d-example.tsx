@@ -1,5 +1,5 @@
 import { GetStaticProps } from 'next';
-import ThreeDMap from '@organisms/ThreeDMap';
+import ThreeDMap from '@organisms/ThreeDMap/ThreeDMapWrapper';
 
 interface ThreeDExampleProps {}
 
