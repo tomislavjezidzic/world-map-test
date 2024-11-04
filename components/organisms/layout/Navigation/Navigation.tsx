@@ -3,14 +3,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import cn from 'classnames';
 import { useEffect, useRef, useState } from 'react';
-import Icon from '@atoms/Icons';
-import Favorites from '@organisms/Favorites';
-import Search from '@atoms/Search';
 
 export interface NavigationProps {}
 
 const Navigation = ({}: NavigationProps) => {
-    const [favoritesOpened, setFavoritesOpened] = useState(false);
     const navBar = useRef(null);
     const pathname = usePathname();
 
@@ -36,38 +32,12 @@ const Navigation = ({}: NavigationProps) => {
                                     >
                                         <Link href="/">Home</Link>
                                     </li>
-
-                                    <li
-                                        className={cn(styles.navigationItem, {
-                                            [styles.isActive]: pathname === '/most-watched',
-                                        })}
-                                    >
-                                        <Link href="/most-watched">Most Watched</Link>
-                                    </li>
                                 </ul>
                             </nav>
-
-                            <div className={styles.actions}>
-                                <button
-                                    className={cn(styles.favorited, {
-                                        [styles.isActive]: favoritesOpened,
-                                    })}
-                                    onClick={() => setFavoritesOpened(!favoritesOpened)}
-                                >
-                                    <span>
-                                        <Icon name="heartFill" />
-                                    </span>
-                                </button>
-
-                                <div className={styles.search}>
-                                    <Search />
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            {favoritesOpened && <Favorites />}
         </>
     );
 };
