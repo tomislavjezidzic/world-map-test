@@ -1,0 +1,17 @@
+:root {
+    --navigation-height: var(--s-60);
+}
+
+html,
+body {
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    @include b0;
+
+    & {
+        color: var(--grey-700);
+        background-color: var(--white-background);
+    }
+}

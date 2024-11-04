@@ -1,0 +1,7 @@
+.u-rte {
+    display: block;
+
+    & > * {
+        margin-bottom: 0;
+    }
+}

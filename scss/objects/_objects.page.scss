@@ -1,0 +1,20 @@
+.o-page {
+    background-color: var(--primary-color);
+    color: var(--tertiary-color);
+    padding-top: var(--navigation-height);
+
+    header,
+    section,
+    footer {
+        opacity: 0;
+        transition: opacity 0.25s;
+    }
+
+    &--show {
+        header,
+        section,
+        footer {
+            opacity: 1;
+        }
+    }
+}

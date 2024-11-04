@@ -1,0 +1,41 @@
+//
+// @include gradient-text('linear-gradient(to right, #23966c, #faaa54)', 'light');
+//
+
+@mixin gradient-text($gradient, $bg: 'light') {
+    @supports (mix-blend-mode: lighten) {
+        display: inline-block;
+        position: relative;
+
+        &::before {
+            content: '';
+            display: block;
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+
+            background: unquote($gradient);
+            pointer-events: none;
+        }
+
+        @if ($bg == 'light') {
+            color: #000;
+            background-color: #fff;
+            mix-blend-mode: multiply;
+
+            &::before {
+                mix-blend-mode: screen;
+            }
+        } @else {
+            color: #fff;
+            background-color: #000;
+            mix-blend-mode: lighten;
+
+            &::before {
+                mix-blend-mode: multiply;
+            }
+        }
+    }
+}

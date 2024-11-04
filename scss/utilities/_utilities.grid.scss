@@ -1,0 +1,14 @@
+.u-grid {
+    @include fluidValue('grid-column-gap', null, $grid-desktop-gutter-size);
+    display: grid;
+    grid-row-gap: 0;
+    grid-template-columns: repeat($grid-column-count, 1fr);
+    grid-template-areas: 'none';
+    grid-auto-rows: min-content;
+
+    @include mq(md) {
+        grid-column-gap: $grid-mobile-gutter-size;
+        grid-template-columns: repeat($grid-mobile-column-count, 1fr);
+        grid-template-areas: 'none';
+    }
+}

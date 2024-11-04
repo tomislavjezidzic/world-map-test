@@ -1,0 +1,119 @@
+.main {
+    background-color: var(--secondary-color);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: getZindex(navigation);
+}
+
+.top {
+    padding-top: var(--s-15);
+    padding-bottom: var(--s-15);
+}
+
+.inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    @include mq(sm) {
+        display: block;
+    }
+}
+
+.navigation {
+    &List {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s-15);
+    }
+
+    &Item {
+        position: relative;
+        overflow: hidden;
+
+        &:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--tertiary-color);
+            transition: transform 0.3s;
+            transform: translateX(-101%);
+        }
+
+        &.isActive {
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        @include hover {
+            &:after {
+                transform: translateX(0);
+            }
+        }
+    }
+}
+
+.actions {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-20);
+}
+
+.search {
+}
+
+.favorited {
+    @include button-reset;
+    cursor: pointer;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--red);
+    @include fluidValue('font-size', null, 24px);
+
+    span {
+        display: block;
+        line-height: 0;
+        transition: opacity 0.3s 0.2s;
+    }
+
+    &:after,
+    &:before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 90%;
+        height: 2px;
+        background-color: var(--red);
+        display: block;
+        transition: opacity 0.3s;
+        opacity: 0;
+    }
+
+    &:after {
+        transform: translate(-50%, -50%) rotate(45deg);
+    }
+
+    &:before {
+        transform: translate(-50%, -50%) rotate(-45deg);
+    }
+
+    &.isActive {
+        span {
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        &:after,
+        &:before {
+            transition: opacity 0.3s 0.2s;
+            opacity: 1;
+        }
+    }
+}

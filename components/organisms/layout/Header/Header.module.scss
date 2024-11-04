@@ -1,0 +1,17 @@
+.main {
+    padding-top: var(--s-30);
+    padding-bottom: var(--s-60);
+
+    &.centered {
+        text-align: center;
+    }
+
+    &.full {
+        min-height: 90vh;
+    }
+}
+
+.subtitle {
+    padding-top: var(--s-15);
+    opacity: 0.5;
+}

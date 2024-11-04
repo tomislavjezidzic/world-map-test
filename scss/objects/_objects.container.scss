@@ -1,0 +1,12 @@
+.o-container {
+    margin: 0 auto;
+    padding-left: var(--s-30);
+    padding-right: var(--s-30);
+    @include fluidValue('max-width', null, 1440px);
+
+    @include mq(md) {
+        max-width: 100%;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+}

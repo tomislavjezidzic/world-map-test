@@ -1,0 +1,49 @@
+.u-icon {
+    display: inline-block;
+    width: 1em;
+    height: 100%;
+    stroke: currentColor;
+    fill: currentColor;
+    stroke-width: 0;
+    stroke-miterlimit: 10;
+
+    path,
+    rect,
+    circle {
+        vector-effect: non-scaling-stroke;
+    }
+
+    // region: fills
+
+    &--no-fill {
+        fill: none;
+    }
+
+    &--circle-fill {
+        circle {
+            fill: currentColor;
+        }
+    }
+
+    &--path-fill .path-fill-current {
+        fill: currentColor;
+    }
+
+    // endregion
+
+    // region: borders
+
+    &--border-1px {
+        stroke-width: 1px;
+    }
+
+    &--border-2px {
+        stroke-width: 2px;
+    }
+
+    &--border-3px {
+        stroke-width: 3px;
+    }
+
+    // endregion
+}

@@ -1,0 +1,23 @@
+.u-fade-element {
+    opacity: 0;
+    display: block;
+}
+
+.u-reveal-element {
+    opacity: 0;
+    backface-visibility: hidden;
+    will-change: opacity;
+    position: relative;
+    display: block;
+    transform: translateY(20px);
+}
+
+.u-curtain-element {
+    backface-visibility: hidden;
+    will-change: transform;
+    position: relative;
+    display: block;
+    transform: scaleX(0);
+    transform-origin: top left;
+    overflow: hidden;
+}
