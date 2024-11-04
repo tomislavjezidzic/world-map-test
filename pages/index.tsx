@@ -6,11 +6,12 @@ const IndexPage = ({}: HomepageProps) => {
     return (
         <>
             <h1>World map test</h1>
+
         </>
     );
 };
 
-export const getStaticProps: GetStaticProps = async () => {
+export const getStaticProps: GetStaticProps = () => {
     return {
         props: {
             title: 'Homepage',

@@ -42,8 +42,6 @@ const App = ({ Component, pageProps }: AppProps) => {
                 <Navigation />
 
                 <Component {...pageProps} />
-
-                <Footer />
             </main>
         </>
     );

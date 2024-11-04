@@ -1,6 +1,7 @@
 const modules = {
     sassOptions: {
         additionalData: `@import "scss/_scoped";`,
+        silenceDeprecations: ['legacy-js-api'],
     },
     i18n: {
         locales: ['en'],
@@ -8,7 +9,7 @@ const modules = {
         localeDetection: false,
     },
     images: {
-        domains: ['picsum.photos', 'image.tmdb.org'],
+        domains: ['picsum.photos'],
     },
 };
 

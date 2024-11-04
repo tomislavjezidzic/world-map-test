@@ -1,4 +1,5 @@
 import { GetStaticProps } from 'next';
+import ThreeDMap from '@organisms/ThreeDMap';
 
 interface ThreeDExampleProps {}
 
@@ -6,11 +7,12 @@ const ThreeDExamplePage = ({}: ThreeDExampleProps) => {
     return (
         <>
             <h1>3D Example Page</h1>
+            <ThreeDMap />
         </>
     );
 };
 
-export const getStaticProps: GetStaticProps = async () => {
+export const getStaticProps: GetStaticProps = () => {
     return {
         props: {
             title: '3D Example Page',
