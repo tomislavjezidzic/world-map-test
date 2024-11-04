@@ -1,13 +1,11 @@
 import { GetStaticProps } from 'next';
 
-interface HomepageProps {
+interface HomepageProps {}
 
-}
-
-const IndexPage = ({ }: HomepageProps) => {
+const IndexPage = ({}: HomepageProps) => {
     return (
         <>
-            <h1>page</h1>
+            <h1>World map test</h1>
         </>
     );
 };
