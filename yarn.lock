@@ -2212,7 +2212,7 @@ globby@^11.1.0:
     merge2 "^1.4.1"
     slash "^3.0.0"
 
-globe.gl@^2.33:
+globe.gl@^2.26:
   version "2.33.1"
   resolved "https://registry.yarnpkg.com/globe.gl/-/globe.gl-2.33.1.tgz#32f9cecaa5097b5a460e86b33081ee71d9fba52b"
   integrity sha512-ASofOu8nKaqvPU25D+L59L/fp3SNGr5MjQbxlgu8XZy/JoVWKmdWZj+VDgLy2yeWTssOPGiwaxe1RbaVAFoyHQ==
@@ -3081,7 +3081,7 @@ process@^0.11.1:
   resolved "https://registry.yarnpkg.com/process/-/process-0.11.10.tgz#7332300e840161bda3e69a1d1d91a7d4bc16f182"
   integrity sha512-cdGef/drWFoydD1JsMzuFf8100nZl+GT+yacc2bEced5f9Rjk4z+WtFUTBu9PhOi9j/jfmBPu0mMEY4wIdAF8A==
 
-prop-types@15, prop-types@^15.8.1:
+prop-types@^15.8, prop-types@^15.8.1:
   version "15.8.1"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.8.1.tgz#67d87bf1a694f48435cf332c24af10214a3140b5"
   integrity sha512-oj87CgZICdulUohogVAR7AjlC0327U4el4L6eAvOqCeudMDVU0NThNaV+b9Df4dXgSP1gXMTnPdhfe/2qDH5cg==
@@ -3112,21 +3112,21 @@ react-dom@^19.0.0-rc-fb9a90fa48-20240614:
   dependencies:
     scheduler "0.25.0-rc-fb9a90fa48-20240614"
 
-react-globe.gl@^2.27.4:
-  version "2.27.4"
-  resolved "https://registry.yarnpkg.com/react-globe.gl/-/react-globe.gl-2.27.4.tgz#9bfc445906f7defbf4f085c963e51c01694e21eb"
-  integrity sha512-okpAHFf1fmagkEeL38/LfMG33v/nAwZKxJqlBWswuYZBszrcLVQyTKFfwwLEeaDiYmoDyNJ2qK2D3mnL1yC3Fg==
+react-globe.gl@2.22.3:
+  version "2.22.3"
+  resolved "https://registry.yarnpkg.com/react-globe.gl/-/react-globe.gl-2.22.3.tgz#9b630e556e77adc049e3dc6f3e983339bc4a8d3f"
+  integrity sha512-mi8comxcjWsle8oSEOKxXa+/b6cV/wK2T720kDvR7Dlgj9wcbGSQ/KrMsrvW3TiWWwWYvvlBBRfZhJtQSO84dQ==
   dependencies:
-    globe.gl "^2.33"
-    prop-types "15"
-    react-kapsule "2"
+    globe.gl "^2.26"
+    prop-types "^15.8"
+    react-kapsule "^2.2"
 
 react-is@^16.13.1:
   version "16.13.1"
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.13.1.tgz#789729a4dc36de2999dc156dd6c1d9c18cea56a4"
   integrity sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==
 
-react-kapsule@2:
+react-kapsule@^2.2:
   version "2.4.1"
   resolved "https://registry.yarnpkg.com/react-kapsule/-/react-kapsule-2.4.1.tgz#b2bd53787b6903a22deb78641f7a393d6f4e644b"
   integrity sha512-dAPhdUHZWbCH46lF2wHSqtJ3bdmNCYiV10v7QBgzYGAVMup/SZt6WHgP0PzURQvinVRKpq6PmsO4af1W37mQdg==

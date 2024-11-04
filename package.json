@@ -23,7 +23,7 @@
         "poly-fluid-sizing": "github:bornfight/poly-fluid-sizing",
         "react": "^19.0.0-rc-fb9a90fa48-20240614",
         "react-dom": "^19.0.0-rc-fb9a90fa48-20240614",
-        "react-globe.gl": "^2.27.4",
+        "react-globe.gl": "2.22.3",
         "sharp": "^0.33.4",
         "slugify": "^1.6.6",
         "typescript": "^5.5.4"
