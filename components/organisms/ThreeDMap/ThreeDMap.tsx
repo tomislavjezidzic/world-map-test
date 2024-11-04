@@ -2,6 +2,7 @@ import styles from './ThreeDMap.module.scss';
 import dynamic from 'next/dynamic';
 import { useEffect, useRef, useState } from 'react';
 const Globe = dynamic(import('react-globe.gl'), { ssr: false });
+
 import * as d3 from 'd3';
 
 export interface ThreeDMapProps {}

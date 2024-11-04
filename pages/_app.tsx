@@ -3,7 +3,6 @@ import { AppProps as NextAppProps } from 'next/app';
 import Fonts from '@organisms/layout/Fonts';
 import SeoHead from '@organisms/layout/SeoHead';
 import 'scss/style.scss';
-import Footer from '@organisms/layout/Footer';
 import Navigation from '@organisms/layout/Navigation';
 import { useRouter } from 'next/router';
 import cn from 'classnames';
