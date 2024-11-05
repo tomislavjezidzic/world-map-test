@@ -23,7 +23,7 @@ const ThreeDMap = ({}: ThreeDMapProps) => {
     }, []);
 
     const addPoints = useCallback(() => {
-        function addPoint(point) {
+        function addPoint(point: any) {
             setPopulationData(prev => [...prev, point]);
         }
 
@@ -49,8 +49,10 @@ const ThreeDMap = ({}: ThreeDMapProps) => {
 
     const handleRef = useCallback(() => {
         if (globeRef.current) {
-            globeRef.current.controls().autoRotate = true;
             setGlobeSpeed(0.4);
+            // @ts-ignore
+            globeRef.current.controls().autoRotate = true;
+            // @ts-ignore
             globeRef.current.controls().enableZoom = false;
 
             setTimeout(() => {
@@ -136,9 +138,8 @@ const ThreeDMap = ({}: ThreeDMapProps) => {
 
     useEffect(() => {
         if (globeRef.current) {
-            // globeRef.current.controls().autoRotate = true;
+            // @ts-ignore
             globeRef.current.controls().autoRotateSpeed = globeSpeed;
-            // globeRef.current.controls().enableZoom = false;
         }
     }, [globeRef.current, globeSpeed]);
 
@@ -159,11 +160,14 @@ const ThreeDMap = ({}: ThreeDMapProps) => {
                 polygonSideColor={() => 'transparent'}
                 polygonStrokeColor={() => 'rgb(45, 44, 44)'}
                 pointsData={populationData}
+                // @ts-ignore
                 pointLat={d => d?.lat}
+                // @ts-ignore
                 pointLng={d => d?.lng}
                 pointsMerge={true}
                 pointAltitude={0}
                 pointRadius={0.12}
+                // @ts-ignore
                 pointColor={d => d?.color}
                 onGlobeReady={handleRef}
             />
