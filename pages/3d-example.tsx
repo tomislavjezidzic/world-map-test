@@ -6,7 +6,6 @@ interface ThreeDExampleProps {}
 const ThreeDExamplePage = ({}: ThreeDExampleProps) => {
     return (
         <>
-            <h1>3D Example Page</h1>
             <ThreeDMap />
         </>
     );
