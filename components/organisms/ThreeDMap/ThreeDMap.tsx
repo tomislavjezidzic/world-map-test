@@ -2,46 +2,77 @@ import styles from './ThreeDMap.module.scss';
 import React, { useCallback, useEffect, useState, useRef } from 'react';
 import * as d3 from 'd3';
 import gsap from 'gsap';
-import GEO_DATA from './data/countries_hex_data.json';
 import Globe from 'react-globe.gl';
-import * as THREE from 'three';
+import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 interface ThreeDMapProps {}
 
 const ThreeDMap = ({}: ThreeDMapProps) => {
     const globeRef = useRef();
-    const [countries, setCountries] = useState([]);
+    const globeWrapper = useRef(null);
+    const [countries, setCountries] = useState({ features: [] });
     const [globeSpeed, setGlobeSpeed] = useState(0);
+    const [hovered, setHovered] = useState();
+    const [animatingAlpha, setAnimatingAlpha] = useState(false);
     const [populationData, setPopulationData] = useState([]);
 
-    useEffect(() => setCountries(GEO_DATA.features), []);
+    useEffect(() => {
+        // load data
+        fetch('/ne_110m_admin_0_countries.geojson')
+            .then(res => res.json())
+            .then(setCountries);
+    }, []);
 
     useEffect(() => {
-        function addPoint(point: any) {
-            setPopulationData(prev => [...prev, point]);
-        }
-
         fetch('/world_population.csv')
             .then(res => res.text())
             .then(csv =>
-                d3.csvParse(csv, ({ lat, lng, pop }) => {
+                d3.csvParse(csv, ({ lat, lng }) => {
                     return {
                         lat: +lat,
                         lng: +lng,
-                        color: '#00b176',
                     };
                 })
             )
             .then(setPopulationData);
-        // .then(data => {
-        // setPopulationData(data);
-        // data.forEach(point => {
-        // setTimeout(() => {
-        //     addPoint(point);
-        // }, 1000);
-        // });
-        // });
     }, []);
+
+    const handleOnLoad = useCallback(
+        material => {
+            const color = {
+                alpha: 0,
+            };
+
+            material.color.set(0.3, 0.3, 0.3);
+
+            setAnimatingAlpha(true);
+
+            material.opacity = 0;
+
+            ScrollTrigger.create({
+                trigger: globeWrapper.current,
+                start: 'top 30%',
+                onEnter: () => {
+                    gsap.fromTo(
+                        color,
+                        {
+                            alpha: 0,
+                        },
+                        {
+                            alpha: 1,
+                            duration: 1,
+                            onUpdate: () => {
+                                material.opacity = color.alpha;
+                            },
+                        }
+                    );
+                },
+            });
+        },
+        [globeWrapper.current]
+    );
 
     const handleRef = useCallback(() => {
         if (globeRef.current) {
@@ -50,85 +81,6 @@ const ThreeDMap = ({}: ThreeDMapProps) => {
             globeRef.current.controls().autoRotate = true;
             // @ts-ignore
             globeRef.current.controls().enableZoom = false;
-
-            setTimeout(() => {
-                console.log(globeRef.current);
-            }, 100);
-
-            // const fromColor = new THREE.Color('black');
-            // const toColor = new THREE.Color('white');
-            //
-            // gsap.to(fromColor, {
-            //     r: toColor.r,
-            //     g: toColor.g,
-            //     b: toColor.b,
-            //     duration: 1,
-            //     onUpdate: () => {
-            //         globeRef.current.scene().children[0].material.color.setRGB(fromColor);
-            //     },
-            // });
-
-            // setTimeout(() => {
-            //     console.log(globeRef.current.scene()?.children[3].children[1].children[0].scale);
-            //     gsap.to(globeRef.current.scene()?.children[3].children[1].children[0].scale, {
-            //         x: 0,
-            //         y: 0,
-            //         z: 0,
-            //         duration: 1,
-            //     });
-            // }, 1000);
-
-            //globeRef.current.scene().children[0].material.color
-
-            // setTimeout(() => {
-            //     if (
-            //         globeRef.current?.controls &&
-            //         typeof globeRef.current?.controls === 'function'
-            //     ) {
-            //         const points = [];
-            //
-            //         // globeRef.current.scene()?.children[3]?.traverse(group => {
-            //         //     if (group.isGroup) {
-            //         //         // group.traverse(child => {
-            //         //             if (group?.geometry?.type === 'CylinderGeometry') {
-            //         //                 console.log(child);
-            //         //             }
-            //         //         // });
-            //         //     }
-            //         // });
-            //
-            //         function traverseChildren(child) {
-            //             if (
-            //                 child.geometry &&
-            //                 child.geometry.type === 'ConicPolygonBufferGeometry'
-            //             ) {
-            //                 child.visible = false;
-            //                 child.scale.set(0, 0, 0);
-            //                 // console.log(child);
-            //                 // points.push(child);
-            //             }
-            //             if (child.children) {
-            //                 child.children.forEach(grandchild => {
-            //                     traverseChildren(grandchild);
-            //                 });
-            //             }
-            //         }
-            //
-            //         globeRef.current.scene()?.children[3]?.traverse(child => {
-            //             traverseChildren(child);
-            //         });
-            //
-            //         if (points != null) {
-            //             points.forEach(point => {
-            //                 gsap.to(point.scale, {
-            //                     x: 1.5,
-            //                     y: 1.5,
-            //                     z: 0.1,
-            //                 });
-            //             });
-            //         }
-            //     }
-            // }, 10);
         }
     }, [globeRef]);
 
@@ -139,35 +91,62 @@ const ThreeDMap = ({}: ThreeDMapProps) => {
         }
     }, [globeRef.current, globeSpeed]);
 
-    return (
-        <section className={styles.threeDMap}>
-            <Globe
-                ref={globeRef}
-                // ringColor={() => 'rgba(0, 0, 0, 0)'}
-                backgroundColor={'rgba(0, 0, 0, 0)'}
-                globeImageUrl={
-                    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAAD5Ip3+AAAAC0lEQVQIHWP4DwQACfsD/Qy7W+cAAAAASUVORK5CYII='
+    useEffect(() => {
+        if (globeRef.current) {
+            let material =
+                // @ts-ignore
+                globeRef.current.scene()?.children[3]?.children[1]?.children[0]?.material;
+            setTimeout(() => {
+                material =
+                    globeRef.current.scene()?.children[3]?.children[1]?.children[0]?.material;
+                if (material && !animatingAlpha) {
+                    material.opacity = 0;
+
+                    handleOnLoad(material);
                 }
-                atmosphereColor={'white'}
-                showAtmosphere={true}
-                polygonsData={countries}
-                polygonAltitude={0.001}
-                polygonCapColor={() => 'transparent'}
-                polygonSideColor={() => 'transparent'}
-                polygonStrokeColor={() => 'rgb(45, 44, 44)'}
-                pointsData={populationData}
-                // @ts-ignore
-                pointLat={d => d?.lat}
-                // @ts-ignore
-                pointLng={d => d?.lng}
-                pointsMerge={true}
-                pointAltitude={0.002}
-                pointRadius={0.12}
-                // @ts-ignore
-                pointColor={d => d?.color}
-                onGlobeReady={handleRef}
-            />
-        </section>
+            }, 1000);
+        }
+    }, [globeRef.current, animatingAlpha]);
+
+    return (
+        <>
+            <div className={styles.spacer}></div>
+            <section className={styles.threeDMap} ref={globeWrapper}>
+                <Globe
+                    ref={globeRef}
+                    backgroundColor={'rgba(0, 0, 0, 0)'}
+                    globeImageUrl={
+                        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAAD5Ip3+AAAAC0lEQVQIHWP4DwQACfsD/Qy7W+cAAAAASUVORK5CYII='
+                    }
+                    atmosphereColor={'white'}
+                    showAtmosphere={true}
+                    polygonsData={countries.features.filter(d => d.properties.ISO_A2 !== 'AQ')}
+                    // polygonAltitude={0.01}
+                    // polygonCapColor={() => 'transparent'}
+                    polygonCapColor={item =>
+                        item === hovered ? 'rgba(170, 170, 170, 0.5)' : 'transparent'
+                    }
+                    polygonAltitude={0.005}
+                    polygonSideColor={() => 'transparent'}
+                    polygonStrokeColor={item =>
+                        item === hovered ? 'rgb(170, 170, 170)' : 'rgb(0, 0, 0)'
+                    }
+                    // polygonsTransitionDuration={300}
+                    onPolygonHover={item => setHovered(item)}
+                    pointsData={populationData}
+                    // @ts-ignore
+                    pointLat={d => d?.lat}
+                    // @ts-ignore
+                    pointLng={d => d?.lng}
+                    // pointsMerge={true}
+                    pointAltitude={0.001}
+                    pointRadius={0.12}
+                    pointsTransitionDuration={0}
+                    pointColor={() => 'rgb(44, 44, 44)'}
+                    onGlobeReady={handleRef}
+                />
+            </section>
+        </>
     );
 };
 
