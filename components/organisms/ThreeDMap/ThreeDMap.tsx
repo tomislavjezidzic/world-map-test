@@ -17,12 +17,6 @@ const ThreeDMap = ({}: ThreeDMapProps) => {
     useEffect(() => setCountries(GEO_DATA.features), []);
 
     useEffect(() => {
-        addPoints();
-
-        console.log(populationData);
-    }, []);
-
-    const addPoints = useCallback(() => {
         function addPoint(point: any) {
             setPopulationData(prev => [...prev, point]);
         }
@@ -38,13 +32,15 @@ const ThreeDMap = ({}: ThreeDMapProps) => {
                     };
                 })
             )
-            .then(data => {
-                data.forEach(point => {
-                    // setTimeout(() => {
-                    addPoint(point);
-                    // }, 100);
-                });
-            });
+            .then(setPopulationData);
+        // .then(data => {
+        // setPopulationData(data);
+        // data.forEach(point => {
+        // setTimeout(() => {
+        //     addPoint(point);
+        // }, 1000);
+        // });
+        // });
     }, []);
 
     const handleRef = useCallback(() => {
@@ -155,7 +151,7 @@ const ThreeDMap = ({}: ThreeDMapProps) => {
                 atmosphereColor={'white'}
                 showAtmosphere={true}
                 polygonsData={countries}
-                polygonAltitude={0.005}
+                polygonAltitude={0.001}
                 polygonCapColor={() => 'transparent'}
                 polygonSideColor={() => 'transparent'}
                 polygonStrokeColor={() => 'rgb(45, 44, 44)'}
@@ -165,7 +161,7 @@ const ThreeDMap = ({}: ThreeDMapProps) => {
                 // @ts-ignore
                 pointLng={d => d?.lng}
                 pointsMerge={true}
-                pointAltitude={0}
+                pointAltitude={0.002}
                 pointRadius={0.12}
                 // @ts-ignore
                 pointColor={d => d?.color}
