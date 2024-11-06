@@ -12,6 +12,7 @@ interface ThreeDMapProps {}
 const ThreeDMap = ({}: ThreeDMapProps) => {
     const globeRef = useRef();
     const globeWrapper = useRef(null);
+    const globeInner = useRef(null);
     const [countries, setCountries] = useState({ features: [] });
     const [globeSpeed, setGlobeSpeed] = useState(0);
     const [hovered, setHovered] = useState();
@@ -40,7 +41,10 @@ const ThreeDMap = ({}: ThreeDMapProps) => {
     }, []);
 
     const handleOnLoad = useCallback(
-        material => {
+        (material: {
+            color: { set: (arg0: number, arg1: number, arg2: number) => void };
+            opacity: number;
+        }) => {
             const color = {
                 alpha: 0,
             };
@@ -98,6 +102,7 @@ const ThreeDMap = ({}: ThreeDMapProps) => {
                 globeRef.current.scene()?.children[3]?.children[1]?.children[0]?.material;
             setTimeout(() => {
                 material =
+                    // @ts-ignore
                     globeRef.current.scene()?.children[3]?.children[1]?.children[0]?.material;
                 if (material && !animatingAlpha) {
                     material.opacity = 0;
@@ -112,40 +117,44 @@ const ThreeDMap = ({}: ThreeDMapProps) => {
         <>
             <div className={styles.spacer}></div>
             <section className={styles.threeDMap} ref={globeWrapper}>
-                <Globe
-                    ref={globeRef}
-                    backgroundColor={'rgba(0, 0, 0, 0)'}
-                    globeImageUrl={
-                        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAAD5Ip3+AAAAC0lEQVQIHWP4DwQACfsD/Qy7W+cAAAAASUVORK5CYII='
-                    }
-                    atmosphereColor={'white'}
-                    showAtmosphere={true}
-                    polygonsData={countries.features.filter(d => d.properties.ISO_A2 !== 'AQ')}
-                    // polygonAltitude={0.01}
-                    // polygonCapColor={() => 'transparent'}
-                    polygonCapColor={item =>
-                        item === hovered ? 'rgba(170, 170, 170, 0.5)' : 'transparent'
-                    }
-                    polygonAltitude={0.005}
-                    polygonSideColor={() => 'transparent'}
-                    polygonStrokeColor={item =>
-                        item === hovered ? 'rgb(170, 170, 170)' : 'rgb(0, 0, 0)'
-                    }
-                    // polygonsTransitionDuration={300}
-                    onPolygonHover={item => setHovered(item)}
-                    pointsData={populationData}
-                    // @ts-ignore
-                    pointLat={d => d?.lat}
-                    // @ts-ignore
-                    pointLng={d => d?.lng}
-                    // pointsMerge={true}
-                    pointAltitude={0.001}
-                    pointRadius={0.12}
-                    pointsTransitionDuration={0}
-                    pointColor={() => 'rgb(44, 44, 44)'}
-                    onGlobeReady={handleRef}
-                />
+                <div ref={globeInner}>
+                    <Globe
+                        ref={globeRef}
+                        backgroundColor={'rgba(0, 0, 0, 0)'}
+                        globeImageUrl={
+                            'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAAD5Ip3+AAAAC0lEQVQIHWP4DwQACfsD/Qy7W+cAAAAASUVORK5CYII='
+                        }
+                        atmosphereColor={'white'}
+                        showAtmosphere={true}
+                        polygonsData={countries.features.filter(d => d.properties.ISO_A2 !== 'AQ')}
+                        rendererConfig={{
+                            alpha: false,
+                            antialias: false,
+                        }}
+                        polygonCapColor={item =>
+                            item === hovered ? 'rgba(170, 170, 170, 0.5)' : 'transparent'
+                        }
+                        polygonAltitude={0.005}
+                        polygonSideColor={() => 'transparent'}
+                        polygonStrokeColor={item =>
+                            item === hovered ? 'rgb(170, 170, 170)' : 'rgb(0, 0, 0)'
+                        }
+                        polygonsTransitionDuration={0}
+                        onPolygonHover={(item: any) => setHovered(item)}
+                        pointsData={populationData}
+                        pointLat={(d: any) => d?.lat}
+                        pointLng={(d: any) => d?.lng}
+                        pointsMerge={true}
+                        pointAltitude={0.001}
+                        pointRadius={0.12}
+                        pointsTransitionDuration={0}
+                        pointColor={() => 'rgb(44, 44, 44)'}
+                        onGlobeReady={handleRef}
+                        animateIn={false}
+                    />
+                </div>
             </section>
+            <div className={styles.spacer}></div>
         </>
     );
 };
