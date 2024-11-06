@@ -13,6 +13,9 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "@amcharts/amcharts5": "^5.10.7",
+        "@amcharts/amcharts5-fonts": "^5.0.1",
+        "@amcharts/amcharts5-geodata": "^5.1.4",
         "@bornfight/b-reset": "^1.0.8",
         "@gsap/react": "^2.1.1",
         "classnames": "^2.3.2",

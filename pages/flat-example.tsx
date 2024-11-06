@@ -1,11 +1,12 @@
 import { GetStaticProps } from 'next';
+import FlatMap from '@organisms/FlatMap/FlatMapWrapper';
 
 interface FlatExampleProps {}
 
 const FlatExamplePage = ({}: FlatExampleProps) => {
     return (
         <>
-            <h1>Flat Example Page</h1>
+            <FlatMap />
         </>
     );
 };

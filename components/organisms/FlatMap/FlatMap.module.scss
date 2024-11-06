@@ -1,0 +1,22 @@
+.flatMap {
+    background-color: #ccc;
+    cursor: grab;
+
+    &:active {
+        cursor: grabbing;
+    }
+}
+
+.spacer {
+    height: 100vh;
+    background-color: #ccc;
+    color: $black;
+}
+
+.button {
+    @include button-reset;
+
+    cursor: pointer;
+    padding: 10px 20px;
+    background-color: $black;
+}
