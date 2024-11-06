@@ -1,9 +1,6 @@
 'use client';
 import styles from './FlatMap.module.scss';
-import React, { useCallback, useEffect, useState, useRef, useLayoutEffect } from 'react';
-import gsap from 'gsap';
-import { useGSAP } from '@gsap/react';
-import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 
 import * as am5 from '@amcharts/amcharts5';
 import am5geodata_worldLow from '@amcharts/amcharts5-geodata/worldLow';
@@ -11,10 +8,6 @@ import am5geodata_worldLow from '@amcharts/amcharts5-geodata/worldLow';
 import * as am5map from '@amcharts/amcharts5/map';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 import * as d3 from 'd3';
-
-if (typeof window !== 'undefined') {
-    gsap.registerPlugin(ScrollTrigger, useGSAP);
-}
 
 interface ThreeDMapProps {}
 
@@ -137,10 +130,13 @@ const FlatMap = ({}: ThreeDMapProps) => {
             });
 
             circle.events.on('click', ev => {
+                // @ts-ignore
                 if (ev.target?._dataItem?.dataContext) {
                     circle.set('active', true);
                     rotateGlobe(
+                        // @ts-ignore
                         ev.target._dataItem.dataContext.lng,
+                        // @ts-ignore
                         ev.target._dataItem.dataContext.lat
                     );
                 }
@@ -155,23 +151,39 @@ const FlatMap = ({}: ThreeDMapProps) => {
 
         let previousPolygon = null;
 
-        // chartRender.current.zoomControl = new am5map.ZoomControl();
+        let isZooming = false;
 
         polygonSeries.mapPolygons.template.on('active', (active, target) => {
             if (previousPolygon && previousPolygon != target) {
                 previousPolygon.set('active', false);
             }
-            if (target.get('active')) {
-                const centroid = target.geoCentroid();
-                if (centroid) {
-                    // rotateGlobe(centroid.longitude, centroid.latitude);
+            isZooming = false;
 
+            const centroid = target.geoCentroid();
+            if (target.get('active')) {
+                if (centroid) {
+                    isZooming = true;
+                    rotateGlobe(centroid.longitude, centroid.latitude);
+                    setTimeout(() => {
+                        chartRender.current.zoomToGeoPoint(
+                            { longitude: centroid.longitude, latitude: centroid.latitude },
+                            4.5,
+                            true,
+                            500
+                        );
+                    }, 500);
+                }
+            } else if (!target.get('active')) {
+                console.log(3, isZooming);
+                if (previousPolygon == target && !isZooming) {
                     chartRender.current.zoomToGeoPoint(
                         { longitude: centroid.longitude, latitude: centroid.latitude },
-                        4.5,
+                        1,
                         true,
                         1000
                     );
+
+                    // isZoomed = false;
                 }
             }
 
@@ -188,7 +200,7 @@ const FlatMap = ({}: ThreeDMapProps) => {
             chartRender.current.animate({
                 key: 'rotationX',
                 to: -x,
-                duration: 1500,
+                duration: 500,
                 easing: am5.ease.inOut(am5.ease.cubic),
             });
 
@@ -196,7 +208,7 @@ const FlatMap = ({}: ThreeDMapProps) => {
                 chartRender.current.animate({
                     key: 'rotationY',
                     to: -y,
-                    duration: 1500,
+                    duration: 500,
                     easing: am5.ease.inOut(am5.ease.cubic),
                 });
             }
