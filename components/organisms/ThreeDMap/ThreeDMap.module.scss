@@ -1,5 +1,10 @@
 .threeDMap {
     background-color: #ccc;
+    cursor: grab;
+
+    &:active {
+        cursor: grabbing;
+    }
 }
 
 .spacer {

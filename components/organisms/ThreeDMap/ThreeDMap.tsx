@@ -1,23 +1,27 @@
 import styles from './ThreeDMap.module.scss';
-import React, { useCallback, useEffect, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useState, useRef, useLayoutEffect } from 'react';
 import * as d3 from 'd3';
 import gsap from 'gsap';
-import Globe from 'react-globe.gl';
+import Globe, { GlobeMethods } from 'react-globe.gl';
+import { useGSAP } from '@gsap/react';
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
 import * as THREE from 'three';
 
-gsap.registerPlugin(ScrollTrigger);
+if (typeof window !== 'undefined') {
+    gsap.registerPlugin(ScrollTrigger, useGSAP);
+}
 
 interface ThreeDMapProps {}
 
 const ThreeDMap = ({}: ThreeDMapProps) => {
-    const globeRef = useRef();
+    const globeRef = useRef<GlobeMethods | null>(null);
     const globeWrapper = useRef(null);
     const globeInner = useRef(null);
     const [countries, setCountries] = useState({ features: [] });
     const [globeSpeed, setGlobeSpeed] = useState(0);
     const [hovered, setHovered] = useState();
     const [animatingAlpha, setAnimatingAlpha] = useState(false);
+    const [isLoaded, setIsLoaded] = useState(false);
     const [populationData, setPopulationData] = useState([]);
 
     useEffect(() => {
@@ -31,47 +35,78 @@ const ThreeDMap = ({}: ThreeDMapProps) => {
         fetch('/world_population.csv')
             .then(res => res.text())
             .then(csv =>
-                d3.csvParse(csv, ({ lat, lng }) => {
-                    return {
-                        lat: +lat,
-                        lng: +lng,
-                    };
+                d3.csvParse(csv, ({ lat, lng, pop }) => {
+                    if (pop > 10000) {
+                        return {
+                            lat: +lat,
+                            lng: +lng,
+                        };
+                    }
                 })
             )
             .then(setPopulationData);
     }, []);
 
-    const handleOnLoad = useCallback(
-        (material: {
-            color: { set: (arg0: number, arg1: number, arg2: number) => void };
-            opacity: number;
-        }) => {
-            const color = {
-                alpha: 0,
-            };
+    useGSAP(() => {
+        if (globeRef.current) {
+            const points = globeRef.current?.scene()?.children[3]?.children[1].children;
 
-            material.color.set(0.3, 0.3, 0.3);
+            if (!points || points?.length === 0) return;
 
-            setAnimatingAlpha(true);
-
-            material.opacity = 0;
+            points.forEach(point => {
+                point.scale.set(0, 0, 0.1);
+            });
 
             ScrollTrigger.create({
-                trigger: globeWrapper.current,
-                start: 'top 30%',
+                trigger: globeInner.current,
+                start: 'top 50%',
+                end: 'bottom 50%',
+                scrub: 0.5,
+                invalidateOnRefresh: true,
                 onEnter: () => {
-                    gsap.to(color, {
-                        alpha: 1,
-                        duration: 1,
-                        onUpdate: () => {
-                            material.opacity = color.alpha;
-                        },
+                    points.forEach((point, index) => {
+                        gsap.fromTo(
+                            point.scale,
+                            {
+                                x: 0,
+                                y: 0,
+                            },
+                            {
+                                x: 0.2,
+                                y: 0.2,
+                                delay: index * 0.0007,
+                            }
+                        );
                     });
                 },
             });
-        },
-        [globeWrapper.current]
-    );
+        }
+    }, [isLoaded]);
+
+    useGSAP(() => {
+        gsap.timeline({
+            scrollTrigger: {
+                trigger: globeInner.current,
+                start: 'top bottom',
+                end: 'bottom top',
+                scrub: 0.5,
+                invalidateOnRefresh: true,
+            },
+        })
+            .fromTo(
+                globeInner.current,
+                {
+                    scale: 0.7,
+                },
+                {
+                    scale: 1,
+                }
+            )
+            .to(globeInner.current, {
+                delay: 0.3,
+                scale: 0.8,
+            });
+    });
 
     const handleRef = useCallback(() => {
         if (globeRef.current) {
@@ -80,6 +115,10 @@ const ThreeDMap = ({}: ThreeDMapProps) => {
             globeRef.current.controls().autoRotate = true;
             // @ts-ignore
             globeRef.current.controls().enableZoom = false;
+
+            setTimeout(() => {
+                setIsLoaded(true);
+            }, 100);
         }
     }, [globeRef]);
 
@@ -90,31 +129,13 @@ const ThreeDMap = ({}: ThreeDMapProps) => {
         }
     }, [globeRef.current, globeSpeed]);
 
-    useEffect(() => {
-        if (globeRef.current) {
-            let material =
-                // @ts-ignore
-                globeRef.current.scene()?.children[3]?.children[1]?.children[0]?.material;
-            setTimeout(() => {
-                material =
-                    // @ts-ignore
-                    globeRef.current.scene()?.children[3]?.children[1]?.children[0]?.material;
-                if (material && !animatingAlpha) {
-                    material.opacity = 0;
-
-                    handleOnLoad(material);
-                }
-            }, 1000);
-        }
-    }, [globeRef.current, animatingAlpha]);
-
     return (
         <>
             <div className={styles.spacer}>
                 <h1>Scroll down</h1>
             </div>
             <section className={styles.threeDMap} ref={globeWrapper}>
-                <div ref={globeInner}>
+                <div ref={globeInner} style={{ height: '100vh' }}>
                     <Globe
                         ref={globeRef}
                         globeMaterial={
@@ -147,7 +168,6 @@ const ThreeDMap = ({}: ThreeDMapProps) => {
                         pointsData={populationData}
                         pointLat={(d: any) => d?.lat}
                         pointLng={(d: any) => d?.lng}
-                        pointsMerge={true}
                         pointResolution={6}
                         pointAltitude={0.001}
                         pointRadius={0.12}

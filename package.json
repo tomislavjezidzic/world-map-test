@@ -14,6 +14,7 @@
     "license": "ISC",
     "dependencies": {
         "@bornfight/b-reset": "^1.0.8",
+        "@gsap/react": "^2.1.1",
         "classnames": "^2.3.2",
         "d3": "^7.9.0",
         "fs": "^0.0.1-security",
