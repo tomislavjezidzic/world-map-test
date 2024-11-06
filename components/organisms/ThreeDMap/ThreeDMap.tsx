@@ -65,18 +65,11 @@ const ThreeDMap = ({}: ThreeDMapProps) => {
                 invalidateOnRefresh: true,
                 onEnter: () => {
                     points.forEach((point, index) => {
-                        gsap.fromTo(
-                            point.scale,
-                            {
-                                x: 0,
-                                y: 0,
-                            },
-                            {
-                                x: 0.2,
-                                y: 0.2,
-                                delay: index * 0.0007,
-                            }
-                        );
+                        gsap.to(point.scale, {
+                            x: 0.2,
+                            y: 0.2,
+                            delay: index * 0.0007,
+                        });
                     });
                 },
             });
