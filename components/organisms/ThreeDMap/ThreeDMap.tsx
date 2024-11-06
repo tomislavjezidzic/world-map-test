@@ -4,6 +4,7 @@ import * as d3 from 'd3';
 import gsap from 'gsap';
 import Globe from 'react-globe.gl';
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
+import * as THREE from 'three';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -59,19 +60,13 @@ const ThreeDMap = ({}: ThreeDMapProps) => {
                 trigger: globeWrapper.current,
                 start: 'top 30%',
                 onEnter: () => {
-                    gsap.fromTo(
-                        color,
-                        {
-                            alpha: 0,
+                    gsap.to(color, {
+                        alpha: 1,
+                        duration: 1,
+                        onUpdate: () => {
+                            material.opacity = color.alpha;
                         },
-                        {
-                            alpha: 1,
-                            duration: 1,
-                            onUpdate: () => {
-                                material.opacity = color.alpha;
-                            },
-                        }
-                    );
+                    });
                 },
             });
         },
@@ -115,42 +110,49 @@ const ThreeDMap = ({}: ThreeDMapProps) => {
 
     return (
         <>
-            <div className={styles.spacer}></div>
+            <div className={styles.spacer}>
+                <h1>Scroll down</h1>
+            </div>
             <section className={styles.threeDMap} ref={globeWrapper}>
                 <div ref={globeInner}>
                     <Globe
                         ref={globeRef}
-                        backgroundColor={'rgba(0, 0, 0, 0)'}
-                        globeImageUrl={
-                            'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAAD5Ip3+AAAAC0lEQVQIHWP4DwQACfsD/Qy7W+cAAAAASUVORK5CYII='
+                        globeMaterial={
+                            new THREE.MeshStandardMaterial({
+                                color: 0xffffff,
+                                metalness: 0,
+                                roughness: 0.5,
+                                transparent: false,
+                                opacity: 1,
+                            })
                         }
+                        rendererConfig={{
+                            antialias: false,
+                        }}
+                        onGlobeReady={handleRef}
+                        animateIn={false}
+                        backgroundColor={'rgba(0, 0, 0, 0)'}
                         atmosphereColor={'white'}
                         showAtmosphere={true}
                         polygonsData={countries.features.filter(d => d.properties.ISO_A2 !== 'AQ')}
-                        rendererConfig={{
-                            alpha: false,
-                            antialias: false,
-                        }}
                         polygonCapColor={item =>
-                            item === hovered ? 'rgba(170, 170, 170, 0.5)' : 'transparent'
+                            item === hovered ? 'rgba(200, 200, 255, 0.5)' : 'transparent'
                         }
+                        polygonCapCurvatureResolution={0.5}
                         polygonAltitude={0.005}
                         polygonSideColor={() => 'transparent'}
-                        polygonStrokeColor={item =>
-                            item === hovered ? 'rgb(170, 170, 170)' : 'rgb(0, 0, 0)'
-                        }
+                        polygonStrokeColor={() => 'rgb(100, 100, 100)'}
                         polygonsTransitionDuration={0}
                         onPolygonHover={(item: any) => setHovered(item)}
                         pointsData={populationData}
                         pointLat={(d: any) => d?.lat}
                         pointLng={(d: any) => d?.lng}
                         pointsMerge={true}
+                        pointResolution={6}
                         pointAltitude={0.001}
                         pointRadius={0.12}
                         pointsTransitionDuration={0}
-                        pointColor={() => 'rgb(44, 44, 44)'}
-                        onGlobeReady={handleRef}
-                        animateIn={false}
+                        pointColor={() => 'rgb(80, 80, 80)'}
                     />
                 </div>
             </section>
