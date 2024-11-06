@@ -10,6 +10,7 @@ import am5geodata_worldLow from '@amcharts/amcharts5-geodata/worldLow';
 
 import * as am5map from '@amcharts/amcharts5/map';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
+import * as d3 from 'd3';
 
 if (typeof window !== 'undefined') {
     gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -21,6 +22,25 @@ const FlatMap = ({}: ThreeDMapProps) => {
     const [isGlobe, setIsGlobe] = useState(false);
     const chartRef = useRef(null);
     const chartRender = useRef(null);
+    const [citiesData, setCitiesData] = useState([]);
+
+    useEffect(() => {
+        fetch('/world_population.csv')
+            .then(res => res.text())
+            .then(csv =>
+                d3.csvParse(csv, ({ lat, lng, pop }) => {
+                    // @ts-ignore
+                    if (pop > 500000) {
+                        return {
+                            lat: +lat,
+                            lng: +lng,
+                            name: `${pop} people`,
+                        };
+                    }
+                })
+            )
+            .then(setCitiesData);
+    }, []);
 
     useEffect(() => {
         const root = am5.Root.new(chartRef.current);
@@ -28,9 +48,11 @@ const FlatMap = ({}: ThreeDMapProps) => {
         chartRender.current = root.container.children.push(
             am5map.MapChart.new(root, {
                 panX: 'rotateX',
-                panY: 'none',
+                panY: isGlobe ? 'rotateY' : 'none',
                 wheelY: 'none',
                 projection: am5map.geoEqualEarth(),
+                minZoomLevel: 0.5,
+                maxZoomLevel: 16,
             })
         );
 
@@ -103,13 +125,13 @@ const FlatMap = ({}: ThreeDMapProps) => {
         const pointSeries = chartRender.current.series.push(
             am5map.MapPointSeries.new(root, {
                 latitudeField: 'lat',
-                longitudeField: 'long',
+                longitudeField: 'lng',
             })
         );
 
         pointSeries.bullets.push(() => {
             const circle = am5.Circle.new(root, {
-                radius: 5,
+                radius: 2,
                 fill: am5.color(0x4544ff),
                 tooltipText: '{name}',
             });
@@ -118,7 +140,7 @@ const FlatMap = ({}: ThreeDMapProps) => {
                 if (ev.target?._dataItem?.dataContext) {
                     circle.set('active', true);
                     rotateGlobe(
-                        ev.target._dataItem.dataContext.long,
+                        ev.target._dataItem.dataContext.lng,
                         ev.target._dataItem.dataContext.lat
                     );
                 }
@@ -129,25 +151,11 @@ const FlatMap = ({}: ThreeDMapProps) => {
             });
         });
 
-        pointSeries.data.setAll([
-            {
-                long: -73.778137,
-                lat: 40.641312,
-                name: 'Location 1',
-            },
-            {
-                long: -0.454296,
-                lat: 51.47002,
-                name: 'Location 2',
-            },
-            {
-                long: 116.597504,
-                lat: 40.072498,
-                name: 'Location 3',
-            },
-        ]);
+        pointSeries.data.setAll(citiesData);
 
         let previousPolygon = null;
+
+        // chartRender.current.zoomControl = new am5map.ZoomControl();
 
         polygonSeries.mapPolygons.template.on('active', (active, target) => {
             if (previousPolygon && previousPolygon != target) {
@@ -156,7 +164,14 @@ const FlatMap = ({}: ThreeDMapProps) => {
             if (target.get('active')) {
                 const centroid = target.geoCentroid();
                 if (centroid) {
-                    rotateGlobe(centroid.longitude, centroid.latitude);
+                    // rotateGlobe(centroid.longitude, centroid.latitude);
+
+                    chartRender.current.zoomToGeoPoint(
+                        { longitude: centroid.longitude, latitude: centroid.latitude },
+                        4.5,
+                        true,
+                        1000
+                    );
                 }
             }
 
@@ -166,7 +181,7 @@ const FlatMap = ({}: ThreeDMapProps) => {
         return () => {
             root.dispose();
         };
-    }, [isGlobe]);
+    }, [isGlobe, citiesData]);
 
     const rotateGlobe = useCallback(
         (x, y) => {
