@@ -36,6 +36,7 @@ const ThreeDMap = ({}: ThreeDMapProps) => {
             .then(res => res.text())
             .then(csv =>
                 d3.csvParse(csv, ({ lat, lng, pop }) => {
+                    // @ts-ignore
                     if (pop > 10000) {
                         return {
                             lat: +lat,
@@ -53,7 +54,7 @@ const ThreeDMap = ({}: ThreeDMapProps) => {
 
             if (!points || points?.length === 0) return;
 
-            points.forEach(point => {
+            points.forEach((point: { scale: { set: (arg0: number, arg1: number, arg2: number) => void; }; }) => {
                 point.scale.set(0, 0, 0.1);
             });
 
@@ -64,7 +65,7 @@ const ThreeDMap = ({}: ThreeDMapProps) => {
                 scrub: 0.5,
                 invalidateOnRefresh: true,
                 onEnter: () => {
-                    points.forEach((point, index) => {
+                    points.forEach((point: { scale: gsap.TweenTarget; }, index: number) => {
                         gsap.to(point.scale, {
                             x: 0.2,
                             y: 0.2,
