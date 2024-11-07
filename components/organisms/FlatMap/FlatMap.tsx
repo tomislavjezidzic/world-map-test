@@ -11,11 +11,10 @@ import * as d3 from 'd3';
 
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
-import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
 import { ScrollToPlugin } from 'gsap/dist/ScrollToPlugin';
 
 if (typeof window !== 'undefined') {
-    gsap.registerPlugin(ScrollTrigger, useGSAP, ScrollToPlugin);
+    gsap.registerPlugin(useGSAP, ScrollToPlugin);
 }
 
 interface ThreeDMapProps {}
