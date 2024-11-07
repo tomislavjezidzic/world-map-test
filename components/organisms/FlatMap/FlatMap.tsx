@@ -9,15 +9,33 @@ import * as am5map from '@amcharts/amcharts5/map';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 import * as d3 from 'd3';
 
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
+import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
+import { ScrollToPlugin } from 'gsap/dist/ScrollToPlugin';
+
+if (typeof window !== 'undefined') {
+    gsap.registerPlugin(ScrollTrigger, useGSAP, ScrollToPlugin);
+}
+
 interface ThreeDMapProps {}
 
 const FlatMap = ({}: ThreeDMapProps) => {
     const [isGlobe, setIsGlobe] = useState(false);
-    const chartRef = useRef(null);
+    const globeRef = useRef(null);
+    const globeWrapperRef = useRef(null);
     const chartRender = useRef(null);
     const pointSeries = useRef(null);
     const [citiesData, setCitiesData] = useState([]);
     const [isZoomed, setIsZoomed] = useState(false);
+
+    useGSAP(() => {
+        if (isZoomed && globeWrapperRef.current) {
+            gsap.to(window, {
+                scrollTo: globeWrapperRef.current,
+            });
+        }
+    }, [isZoomed]);
 
     useEffect(() => {
         fetch('/world_population.csv')
@@ -38,7 +56,7 @@ const FlatMap = ({}: ThreeDMapProps) => {
     }, []);
 
     useEffect(() => {
-        const root = am5.Root.new(chartRef.current);
+        const root = am5.Root.new(globeRef.current);
 
         chartRender.current = root.container.children.push(
             am5map.MapChart.new(root, {
@@ -220,14 +238,17 @@ const FlatMap = ({}: ThreeDMapProps) => {
 
     useEffect(() => {
         pointSeries.current.bulletsContainer.children.each(bullet => {
-            setTimeout(() => {
-                bullet.animate({
-                    key: 'radius',
-                    to: isZoomed ? 5 : 1.5,
-                    duration: 500,
-                    easing: am5.ease.inOut(am5.ease.cubic),
-                });
-            }, isZoomed ? 1000 : 0);
+            setTimeout(
+                () => {
+                    bullet.animate({
+                        key: 'radius',
+                        to: isZoomed ? 5 : 1.5,
+                        duration: 500,
+                        easing: am5.ease.inOut(am5.ease.cubic),
+                    });
+                },
+                isZoomed ? 1000 : 0
+            );
         });
     }, [isZoomed]);
 
@@ -245,14 +266,8 @@ const FlatMap = ({}: ThreeDMapProps) => {
             <div className={styles.spacer}>
                 <h1>Scroll down</h1>
             </div>
-            <section className={styles.flatMap}>
-                <div
-                    ref={chartRef}
-                    style={{
-                        width: '100%',
-                        height: '80vh',
-                    }}
-                />
+            <section className={styles.flatMap} ref={globeWrapperRef}>
+                <div ref={globeRef}></div>
 
                 <button
                     className={styles.button}

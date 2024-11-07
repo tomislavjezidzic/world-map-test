@@ -1,9 +1,16 @@
 .flatMap {
     background-color: #ccc;
     cursor: grab;
+    padding-top: 10vh;
+    padding-bottom: 10vh;
 
     &:active {
         cursor: grabbing;
+    }
+
+    & > div {
+        width: 100%;
+        height: 80vh;
     }
 }
 
