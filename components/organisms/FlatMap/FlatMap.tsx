@@ -15,7 +15,9 @@ const FlatMap = ({}: ThreeDMapProps) => {
     const [isGlobe, setIsGlobe] = useState(false);
     const chartRef = useRef(null);
     const chartRender = useRef(null);
+    const pointSeries = useRef(null);
     const [citiesData, setCitiesData] = useState([]);
+    const [isZoomed, setIsZoomed] = useState(false);
 
     useEffect(() => {
         fetch('/world_population.csv')
@@ -27,7 +29,7 @@ const FlatMap = ({}: ThreeDMapProps) => {
                         return {
                             lat: +lat,
                             lng: +lng,
-                            name: `${pop} people`,
+                            name: `${pop} registrations`,
                         };
                     }
                 })
@@ -61,11 +63,12 @@ const FlatMap = ({}: ThreeDMapProps) => {
         polygonSeries.useGeodata = true;
 
         polygonSeries.mapPolygons.template.setAll({
-            tooltipText: '{name}',
+            // tooltipText: '{name}',
             toggleKey: 'active',
             interactive: true,
             fill: am5.color(0xcccccc),
             stroke: am5.color(0x000000),
+            tooltipPosition: 'fixed',
         });
 
         polygonSeries.mapPolygons.template.states.create('hover', {
@@ -115,44 +118,47 @@ const FlatMap = ({}: ThreeDMapProps) => {
         });
 
         // Create points
-        const pointSeries = chartRender.current.series.push(
+        pointSeries.current = chartRender.current.series.push(
             am5map.MapPointSeries.new(root, {
                 latitudeField: 'lat',
                 longitudeField: 'lng',
             })
         );
 
-        pointSeries.bullets.push(() => {
+        pointSeries.current.bullets.push(() => {
             const circle = am5.Circle.new(root, {
-                radius: 2,
+                radius: 1.5,
                 fill: am5.color(0x4544ff),
                 tooltipText: '{name}',
+                tooltipPosition: 'fixed',
+                // showTooltipOn: 'click',
             });
 
-            circle.events.on('click', ev => {
-                // @ts-ignore
-                if (ev.target?._dataItem?.dataContext) {
-                    circle.set('active', true);
-                    rotateGlobe(
-                        // @ts-ignore
-                        ev.target._dataItem.dataContext.lng,
-                        // @ts-ignore
-                        ev.target._dataItem.dataContext.lat
-                    );
-                }
-            });
+            // circle.events.on('click', ev => {
+            //     // @ts-ignore
+            //     if (ev.target?._dataItem?.dataContext) {
+            //         circle.set('active', true);
+            //         rotateGlobe(
+            //             // @ts-ignore
+            //             ev.target._dataItem.dataContext.lng,
+            //             // @ts-ignore
+            //             ev.target._dataItem.dataContext.lat
+            //         );
+            //     }
+            // });
 
             return am5.Bullet.new(root, {
                 sprite: circle,
             });
         });
 
-        pointSeries.data.setAll(citiesData);
+        pointSeries.current.data.setAll(citiesData);
 
         let previousPolygon = null;
 
         polygonSeries.mapPolygons.template.events.on('click', ev => {
             if (ev.target.dataItem === previousPolygon?.dataItem) {
+                setIsZoomed(false);
                 chartRender.current.zoomToGeoPoint(
                     { longitude: previousPolygon.longitude, latitude: previousPolygon.latitude },
                     1,
@@ -170,6 +176,7 @@ const FlatMap = ({}: ThreeDMapProps) => {
             const centroid = target.geoCentroid();
             if (active) {
                 if (centroid) {
+                    setIsZoomed(true);
                     rotateGlobe(centroid.longitude, centroid.latitude);
                     setTimeout(() => {
                         chartRender.current.zoomToGeoPoint(
@@ -210,6 +217,19 @@ const FlatMap = ({}: ThreeDMapProps) => {
         },
         [isGlobe]
     );
+
+    useEffect(() => {
+        pointSeries.current.bulletsContainer.children.each(bullet => {
+            setTimeout(() => {
+                bullet.animate({
+                    key: 'radius',
+                    to: isZoomed ? 5 : 1.5,
+                    duration: 500,
+                    easing: am5.ease.inOut(am5.ease.cubic),
+                });
+            }, 500);
+        });
+    }, [isZoomed]);
 
     useEffect(() => {
         if (chartRender.current) {
