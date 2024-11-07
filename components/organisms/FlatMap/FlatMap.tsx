@@ -151,39 +151,34 @@ const FlatMap = ({}: ThreeDMapProps) => {
 
         let previousPolygon = null;
 
-        let isZooming = false;
+        polygonSeries.mapPolygons.template.events.on('click', ev => {
+            if (ev.target.dataItem === previousPolygon?.dataItem) {
+                chartRender.current.zoomToGeoPoint(
+                    { longitude: previousPolygon.longitude, latitude: previousPolygon.latitude },
+                    1,
+                    true,
+                    1000
+                );
+            }
+        });
 
         polygonSeries.mapPolygons.template.on('active', (active, target) => {
             if (previousPolygon && previousPolygon != target) {
                 previousPolygon.set('active', false);
             }
-            isZooming = false;
 
             const centroid = target.geoCentroid();
-            if (target.get('active')) {
+            if (active) {
                 if (centroid) {
-                    isZooming = true;
                     rotateGlobe(centroid.longitude, centroid.latitude);
                     setTimeout(() => {
                         chartRender.current.zoomToGeoPoint(
                             { longitude: centroid.longitude, latitude: centroid.latitude },
                             4.5,
                             true,
-                            500
+                            1000
                         );
-                    }, 500);
-                }
-            } else if (!target.get('active')) {
-                console.log(3, isZooming);
-                if (previousPolygon == target && !isZooming) {
-                    chartRender.current.zoomToGeoPoint(
-                        { longitude: centroid.longitude, latitude: centroid.latitude },
-                        1,
-                        true,
-                        1000
-                    );
-
-                    // isZoomed = false;
+                    }, 700);
                 }
             }
 
@@ -200,7 +195,7 @@ const FlatMap = ({}: ThreeDMapProps) => {
             chartRender.current.animate({
                 key: 'rotationX',
                 to: -x,
-                duration: 500,
+                duration: 1000,
                 easing: am5.ease.inOut(am5.ease.cubic),
             });
 
@@ -208,7 +203,7 @@ const FlatMap = ({}: ThreeDMapProps) => {
                 chartRender.current.animate({
                     key: 'rotationY',
                     to: -y,
-                    duration: 500,
+                    duration: 1000,
                     easing: am5.ease.inOut(am5.ease.cubic),
                 });
             }
