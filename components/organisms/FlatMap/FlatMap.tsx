@@ -183,9 +183,9 @@ const FlatMap = ({}: ThreeDMapProps) => {
                             { longitude: centroid.longitude, latitude: centroid.latitude },
                             4.5,
                             true,
-                            1000
+                            500
                         );
-                    }, 700);
+                    }, 500);
                 }
             }
 
@@ -202,7 +202,7 @@ const FlatMap = ({}: ThreeDMapProps) => {
             chartRender.current.animate({
                 key: 'rotationX',
                 to: -x,
-                duration: 1000,
+                duration: 500,
                 easing: am5.ease.inOut(am5.ease.cubic),
             });
 
@@ -210,7 +210,7 @@ const FlatMap = ({}: ThreeDMapProps) => {
                 chartRender.current.animate({
                     key: 'rotationY',
                     to: -y,
-                    duration: 1000,
+                    duration: 500,
                     easing: am5.ease.inOut(am5.ease.cubic),
                 });
             }
@@ -227,7 +227,7 @@ const FlatMap = ({}: ThreeDMapProps) => {
                     duration: 500,
                     easing: am5.ease.inOut(am5.ease.cubic),
                 });
-            }, 500);
+            }, isZoomed ? 1000 : 0);
         });
     }, [isZoomed]);
 
