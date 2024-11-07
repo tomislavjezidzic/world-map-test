@@ -90,7 +90,7 @@ const FlatMap = ({}: ThreeDMapProps) => {
         });
 
         polygonSeries.mapPolygons.template.states.create('hover', {
-            fill: am5.color(0x555555),
+            fill: am5.color(0xaaaaaa),
         });
 
         polygonSeries.mapPolygons.template.states.create('active', {
