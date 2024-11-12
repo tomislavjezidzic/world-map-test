@@ -3,7 +3,7 @@ import styles from './FlatMap.module.scss';
 import React, { useCallback, useEffect, useState, useRef } from 'react';
 
 import * as am5 from '@amcharts/amcharts5';
-import am5geodata_worldLow from '@amcharts/amcharts5-geodata/worldLow';
+import am5geodata_continentsLow from '@amcharts/amcharts5-geodata/continentsLow';
 
 import * as am5map from '@amcharts/amcharts5/map';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
@@ -12,6 +12,9 @@ import * as d3 from 'd3';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { ScrollToPlugin } from 'gsap/dist/ScrollToPlugin';
+import { data } from '@organisms/FlatMap/data/continentsAdditionalData';
+
+import FlatMapDataTooltip from '@molecules/FlatMapDataTooltip';
 
 if (typeof window !== 'undefined') {
     gsap.registerPlugin(useGSAP, ScrollToPlugin);
@@ -25,6 +28,7 @@ const FlatMap = ({}: ThreeDMapProps) => {
     const globeWrapperRef = useRef(null);
     const chartRender = useRef(null);
     const pointSeries = useRef(null);
+    const previousPolygon = useRef(null);
     const [citiesData, setCitiesData] = useState([]);
     const [isZoomed, setIsZoomed] = useState(false);
 
@@ -46,7 +50,6 @@ const FlatMap = ({}: ThreeDMapProps) => {
                         return {
                             lat: +lat,
                             lng: +lng,
-                            name: `${pop} registrations`,
                         };
                     }
                 })
@@ -62,9 +65,10 @@ const FlatMap = ({}: ThreeDMapProps) => {
                 panX: 'rotateX',
                 panY: isGlobe ? 'rotateY' : 'none',
                 wheelY: 'none',
-                projection: am5map.geoEqualEarth(),
+                projection: am5map.geoNaturalEarth1(),
                 minZoomLevel: 0.5,
                 maxZoomLevel: 16,
+                centerY: 0,
             })
         );
 
@@ -72,8 +76,8 @@ const FlatMap = ({}: ThreeDMapProps) => {
 
         const polygonSeries = chartRender.current.series.push(
             am5map.MapPolygonSeries.new(root, {
-                geoJSON: am5geodata_worldLow,
-                exclude: ['AQ'],
+                geoJSON: am5geodata_continentsLow,
+                exclude: ['antarctica'],
             })
         );
 
@@ -83,24 +87,31 @@ const FlatMap = ({}: ThreeDMapProps) => {
             // tooltipText: '{name}',
             toggleKey: 'active',
             interactive: true,
-            fill: am5.color(0xcccccc),
-            stroke: am5.color(0x000000),
+            fill: am5.color(0x2d2c2c),
+            stroke: am5.color(0x3fdbed),
             tooltipPosition: 'fixed',
+            cursorOverStyle: 'pointer',
         });
 
         polygonSeries.mapPolygons.template.states.create('hover', {
-            fill: am5.color(0xaaaaaa),
+            strokeWidth: 1,
+        });
+
+        polygonSeries.mapPolygons.template.events.on('click', ev => {
+            // console.log('Clicked on', ev.target.dataItem.dataContext.id);
         });
 
         polygonSeries.mapPolygons.template.states.create('active', {
-            fill: am5.color(0xaaaaaa),
+            fill: am5.color(0x3fdbed),
+            fillOpacity: 0.05,
+            stroke: am5.color(0x3fdbed),
+            strokeWidth: 1,
         });
 
         const polygonTemplate = polygonSeries.mapPolygons.template;
-        polygonTemplate.tooltipText = '{name}';
+        // polygonTemplate.tooltipText = '{name}';
         polygonTemplate.fill = am5.color('#ffffff');
         polygonTemplate.stroke = am5.color('#ffffff');
-        polygonTemplate.strokeWidth = 0.5;
 
         const graticuleSeries = chartRender.current.series.insertIndex(
             0,
@@ -108,8 +119,7 @@ const FlatMap = ({}: ThreeDMapProps) => {
         );
 
         graticuleSeries.mapLines.template.setAll({
-            stroke: am5.color(0x000000),
-            strokeOpacity: 0.08,
+            stroke: am5.color(0x575654),
         });
 
         const backgroundSeries = chartRender.current.series.unshift(
@@ -117,9 +127,8 @@ const FlatMap = ({}: ThreeDMapProps) => {
         );
 
         backgroundSeries.mapPolygons.template.setAll({
-            fill: am5.color(0xcccccc),
-            stroke: am5.color(0x000000),
-            strokeOpacity: 0.3,
+            fill: am5.color(0x2d2c2c),
+            stroke: am5.color(0x3fdbed),
         });
 
         backgroundSeries.data.push({
@@ -134,6 +143,46 @@ const FlatMap = ({}: ThreeDMapProps) => {
             loops: Infinity,
         });
 
+        // create markers
+        const markerSeries = chartRender.current.series.push(
+            am5map.MapPointSeries.new(root, {
+                geoJSON: data,
+            })
+        );
+
+        markerSeries.bullets.push((root, series, dataItem) => {
+            const container = am5.Container.new(root, {
+                layer: 2,
+            });
+            container.children.push(
+                am5.Picture.new(root, {
+                    templateField: 'pictureSettings',
+                    width: 24,
+                    centerX: am5.p50,
+                    centerY: am5.p50,
+                    forceInactive: true,
+                })
+            );
+
+            const rect = container.children.push(
+                am5.Rectangle.new(root, {
+                    width: 24,
+                    height: 24,
+                    centerX: am5.p50,
+                    centerY: am5.p50,
+                    fill: am5.color(0x2d2c2c),
+                })
+            );
+
+            container.set('mask', rect);
+
+            return am5.Bullet.new(root, {
+                sprite: container,
+            });
+        });
+
+        markerSeries.bulletsContainer.parent.zIndex = 199990;
+
         // Create points
         pointSeries.current = chartRender.current.series.push(
             am5map.MapPointSeries.new(root, {
@@ -143,83 +192,70 @@ const FlatMap = ({}: ThreeDMapProps) => {
         );
 
         pointSeries.current.bullets.push(() => {
-            const circle = am5.Circle.new(root, {
-                radius: 1.5,
-                fill: am5.color(0x4544ff),
-                tooltipText: '{name}',
-                tooltipPosition: 'fixed',
-                // showTooltipOn: 'click',
+            const rect = am5.Rectangle.new(root, {
+                width: 2.5,
+                height: 2.5,
+                fill: am5.color(0x3e5b64),
             });
 
-            // circle.events.on('click', ev => {
-            //     // @ts-ignore
-            //     if (ev.target?._dataItem?.dataContext) {
-            //         circle.set('active', true);
-            //         rotateGlobe(
-            //             // @ts-ignore
-            //             ev.target._dataItem.dataContext.lng,
-            //             // @ts-ignore
-            //             ev.target._dataItem.dataContext.lat
-            //         );
-            //     }
-            // });
-
             return am5.Bullet.new(root, {
-                sprite: circle,
+                sprite: rect,
             });
         });
 
         pointSeries.current.data.setAll(citiesData);
 
-        let previousPolygon = null;
-
         polygonSeries.mapPolygons.template.events.on('click', ev => {
-            if (ev.target.dataItem === previousPolygon?.dataItem) {
-                setIsZoomed(false);
-                chartRender.current.zoomToGeoPoint(
-                    { longitude: previousPolygon.longitude, latitude: previousPolygon.latitude },
-                    1,
-                    true,
-                    1000
+            if (ev.target.dataItem === previousPolygon.current?.dataItem) {
+                rotateGlobe(
+                    previousPolygon.current.longitude,
+                    previousPolygon.current.latitude,
+                    true
                 );
             }
         });
 
-        polygonSeries.mapPolygons.template.on('active', (active, target) => {
-            if (previousPolygon && previousPolygon != target) {
-                previousPolygon.set('active', false);
-            }
-
-            const centroid = target.geoCentroid();
-            if (active) {
-                if (centroid) {
-                    setIsZoomed(true);
-                    rotateGlobe(centroid.longitude, centroid.latitude);
-                    setTimeout(() => {
-                        chartRender.current.zoomToGeoPoint(
-                            { longitude: centroid.longitude, latitude: centroid.latitude },
-                            4.5,
-                            true,
-                            500
-                        );
-                    }, 500);
+        polygonSeries.mapPolygons.template.on(
+            'active',
+            (active: any, target: { geoCentroid: () => any }) => {
+                if (previousPolygon && previousPolygon?.current != target) {
+                    previousPolygon.current?.set('active', false);
                 }
-            }
 
-            previousPolygon = target;
-        });
+                const centroid = target.geoCentroid();
+                if (active) {
+                    if (centroid) {
+                        rotateGlobe(centroid.longitude, centroid.latitude, false);
+                    }
+                }
+
+                previousPolygon.current = target;
+            }
+        );
 
         return () => {
             root.dispose();
         };
-    }, [isGlobe, citiesData]);
+    }, [isGlobe, citiesData, previousPolygon]);
 
     const rotateGlobe = useCallback(
-        (x, y) => {
+        (x = 0, y = 0, zoomOut = false) => {
+            if (zoomOut) {
+                previousPolygon.current.set('active', false);
+            }
+
+            setIsZoomed(!zoomOut);
             chartRender.current.animate({
                 key: 'rotationX',
                 to: -x,
-                duration: 500,
+                duration: 1500,
+                easing: am5.ease.inOut(am5.ease.cubic),
+            });
+
+            chartRender.current.animate({
+                key: 'zoomLevel',
+                to: zoomOut ? 1 : 2.5,
+                duration: 1500,
                 easing: am5.ease.inOut(am5.ease.cubic),
             });
 
@@ -227,7 +263,20 @@ const FlatMap = ({}: ThreeDMapProps) => {
                 chartRender.current.animate({
                     key: 'rotationY',
                     to: -y,
-                    duration: 500,
+                    duration: 1500,
+                    easing: am5.ease.inOut(am5.ease.cubic),
+                });
+            } else {
+                console.log(
+                    chartRender.current._contentHeight,
+                    chartRender.current._contentWidth,
+                    -y,
+                    -y * ((chartRender.current._contentWidth / 1300) * 10)
+                );
+                chartRender.current.animate({
+                    key: 'centerY',
+                    to: zoomOut ? 0 : -y * 4.27 * 2.5,
+                    duration: 1500,
                     easing: am5.ease.inOut(am5.ease.cubic),
                 });
             }
@@ -240,8 +289,15 @@ const FlatMap = ({}: ThreeDMapProps) => {
             setTimeout(
                 () => {
                     bullet.animate({
-                        key: 'radius',
-                        to: isZoomed ? 5 : 1.5,
+                        key: 'width',
+                        to: isZoomed ? 5 : 2.5,
+                        duration: 500,
+                        easing: am5.ease.inOut(am5.ease.cubic),
+                    });
+
+                    bullet.animate({
+                        key: 'height',
+                        to: isZoomed ? 5 : 2.5,
                         duration: 500,
                         easing: am5.ease.inOut(am5.ease.cubic),
                     });
@@ -255,7 +311,7 @@ const FlatMap = ({}: ThreeDMapProps) => {
         if (chartRender.current) {
             chartRender.current.set(
                 'projection',
-                isGlobe ? am5map.geoOrthographic() : am5map.geoEqualEarth()
+                isGlobe ? am5map.geoOrthographic() : am5map.geoNaturalEarth1()
             );
         }
     }, [isGlobe]);
@@ -265,27 +321,30 @@ const FlatMap = ({}: ThreeDMapProps) => {
             <div className={styles.spacer}>
                 <h1>Scroll down</h1>
             </div>
-            <section className={styles.flatMap} ref={globeWrapperRef}>
-                <div ref={globeRef}></div>
+            <div className={styles.flatMapWrapper} ref={globeWrapperRef}>
+                <section className={styles.flatMap}>
+                    <FlatMapDataTooltip isActive={isZoomed} rotateGlobe={rotateGlobe} />
+                    <div ref={globeRef}></div>
 
-                <button
-                    className={styles.button}
-                    type="button"
-                    onClick={() => {
-                        setIsGlobe(!isGlobe);
-                        if (!isGlobe) {
-                            chartRender.current.animate({
-                                key: 'rotationY',
-                                to: 0,
-                                duration: 300,
-                                easing: am5.ease.inOut(am5.ease.cubic),
-                            });
-                        }
-                    }}
-                >
-                    Switch View
-                </button>
-            </section>
+                    <button
+                        className={styles.button}
+                        type="button"
+                        onClick={() => {
+                            setIsGlobe(!isGlobe);
+                            if (!isGlobe) {
+                                chartRender.current.animate({
+                                    key: 'rotationY',
+                                    to: 0,
+                                    duration: 300,
+                                    easing: am5.ease.inOut(am5.ease.cubic),
+                                });
+                            }
+                        }}
+                    >
+                        Switch View
+                    </button>
+                </section>
+            </div>
             <div className={styles.spacer}></div>
         </>
     );

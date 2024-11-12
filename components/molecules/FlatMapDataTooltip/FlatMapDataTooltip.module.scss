@@ -1,0 +1,61 @@
+.wrapper {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+
+    &.isActive {
+        transition: opacity 0.3s 1.5s;
+        opacity: 1;
+        pointer-events: auto;
+    }
+}
+
+.main {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-12px, -12px);
+}
+
+.marker {
+    width: 24px;
+    height: 24px;
+    background-color: #3fdbed;
+    position: relative;
+
+    &:after,
+    &:before {
+        content: '';
+        display: block;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #2d2c2c;
+        width: 2px;
+        height: 12px;
+        transition: transform 0.15s 0s;
+    }
+
+    &:after {
+        transform: translate(-50%, -50%) rotate(90deg);
+    }
+
+    .isActive & {
+        &:before {
+            transition: transform 0.5s 1.5s;
+            transform: translate(-50%, -50%) rotate(-45deg);
+        }
+
+        &:after {
+            transition: transform 0.5s 1.5s;
+            transform: translate(-50%, -50%) rotate(45deg);
+        }
+    }
+}
