@@ -34,6 +34,10 @@ const FlatMap = ({}: ThreeDMapProps) => {
     const pointSeries = useRef(null);
     const previousPolygon = useRef(null);
     const [citiesData, setCitiesData] = useState([]);
+    const [prevMarkerPosition, setPrevMarkerPosition] = useState({
+        x: null,
+        y: null,
+    });
     const [isZoomed, setIsZoomed] = useState(false);
 
     useGSAP(() => {
@@ -122,6 +126,7 @@ const FlatMap = ({}: ThreeDMapProps) => {
             am5map.GraticuleSeries.new(root, {})
         );
 
+        // TODO: animate line series
         graticuleSeries.mapLines.template.setAll({
             stroke: am5.color(0x575654),
         });
@@ -132,7 +137,8 @@ const FlatMap = ({}: ThreeDMapProps) => {
 
         backgroundSeries.mapPolygons.template.setAll({
             fill: am5.color(0x2d2c2c),
-            stroke: am5.color(0x3fdbed),
+            stroke: am5.color(0x575654),
+            strokeWidth: 1,
         });
 
         backgroundSeries.data.push({
@@ -247,15 +253,27 @@ const FlatMap = ({}: ThreeDMapProps) => {
             if (zoomOut) {
                 previousPolygon.current.set('active', false);
                 setTooltipPosition({ x: null, y: null });
-            }
 
-            setIsZoomed(!zoomOut);
-            chartRender.current.animate({
-                key: 'rotationX',
-                to: isGlobe ? -x : -x - 90,
-                duration: 1500,
-                easing: am5.ease.inOut(am5.ease.cubic),
-            });
+                chartRender.current.animate({
+                    key: 'rotationX',
+                    from: prevMarkerPosition.x,
+                    to: 360 + prevMarkerPosition.x,
+                    duration: 90000,
+                    loops: Infinity,
+                });
+            } else {
+                setPrevMarkerPosition({
+                    x: isGlobe ? -x : -x - 90,
+                    y,
+                });
+
+                chartRender.current.animate({
+                    key: 'rotationX',
+                    to: isGlobe ? -x : -x - 90,
+                    duration: 1500,
+                    easing: am5.ease.inOut(am5.ease.cubic),
+                });
+            }
 
             if (isGlobe) {
                 chartRender.current.animate({
@@ -271,14 +289,15 @@ const FlatMap = ({}: ThreeDMapProps) => {
                     duration: 1500,
                     easing: am5.ease.inOut(am5.ease.cubic),
                 });
-            } else {
-                // chartRender.current.animate({
-                //     key: 'centerY',
-                //     to: zoomOut ? 0 : -y * 4.27 * 2.5,
-                //     duration: 1500,
-                //     easing: am5.ease.inOut(am5.ease.cubic),
-                // });
             }
+            // else {
+            // chartRender.current.animate({
+            //     key: 'centerY',
+            //     to: zoomOut ? 0 : -y * 4.27 * 2.5,
+            //     duration: 1500,
+            //     easing: am5.ease.inOut(am5.ease.cubic),
+            // });
+            // }
 
             setTimeout(() => {
                 setTooltipPosition(
@@ -288,8 +307,10 @@ const FlatMap = ({}: ThreeDMapProps) => {
                     })
                 );
             }, 1500);
+
+            setIsZoomed(!zoomOut);
         },
-        [isGlobe]
+        [isGlobe, prevMarkerPosition]
     );
 
     useEffect(() => {
