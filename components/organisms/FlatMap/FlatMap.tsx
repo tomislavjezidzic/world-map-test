@@ -292,12 +292,12 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
             start: 'top center',
             onEnter: () => {
                 chartRender.current.appear(300);
-                graticuleSeries.appear(1000, 300);
-                backgroundSeries.appear(1000, 300);
-                worldSeries.appear(1500, 1000);
-                polygonSeries.appear(1500, 1000);
-                pointSeries.current.appear(1500, 1800);
-                markerSeries.appear(1500, 2500);
+                graticuleSeries.appear(1000);
+                backgroundSeries.appear(1000);
+                worldSeries.appear(1500, 500);
+                polygonSeries.appear(1500, 500);
+                pointSeries.current.appear(2500, 1000);
+                markerSeries.appear(5000, 1500);
             },
         });
         return () => {
