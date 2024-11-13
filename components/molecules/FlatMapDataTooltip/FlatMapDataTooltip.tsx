@@ -130,6 +130,7 @@ const FlatMapDataTooltip = ({
                 className={styles.main}
                 style={{
                     transform: `translate(${position.x}px, ${position.y}px)`,
+                    visibility: position.x ? 'visible' : 'hidden',
                 }}
             >
                 <div className={styles.marker}></div>
