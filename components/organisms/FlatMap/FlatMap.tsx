@@ -26,7 +26,6 @@ const FlatMap = ({}: ThreeDMapProps) => {
     const [isGlobe, setIsGlobe] = useState(false);
     const globeRef = useRef(null);
     const globeWrapperRef = useRef(null);
-    const bla = useRef(null);
     const chartRender = useRef(null);
     const [tooltipPosition, setTooltipPosition] = useState({
         x: null,
@@ -210,15 +209,15 @@ const FlatMap = ({}: ThreeDMapProps) => {
 
         pointSeries.current.data.setAll(citiesData);
 
-        polygonSeries.mapPolygons.template.events.on('click', ev => {
-            if (ev.target.dataItem === previousPolygon.current?.dataItem) {
-                rotateGlobe(
-                    previousPolygon.current.longitude,
-                    previousPolygon.current.latitude,
-                    true
-                );
-            }
-        });
+        // polygonSeries.mapPolygons.template.events.on('click', ev => {
+        //     if (ev.target.dataItem === previousPolygon.current?.dataItem) {
+        //         rotateGlobe(
+        //             previousPolygon.current.longitude,
+        //             previousPolygon.current.latitude,
+        //             true
+        //         );
+        //     }
+        // });
 
         polygonSeries.mapPolygons.template.on(
             'active',
@@ -249,6 +248,8 @@ const FlatMap = ({}: ThreeDMapProps) => {
                 previousPolygon.current.set('active', false);
                 setTooltipPosition({ x: null, y: null });
             }
+
+            console.log(123);
 
             setIsZoomed(!zoomOut);
             chartRender.current.animate({
@@ -288,16 +289,6 @@ const FlatMap = ({}: ThreeDMapProps) => {
                         longitude: x,
                     })
                 );
-
-                // const ble2 = chartRender.current.convert({
-                //     latitude: y,
-                //     longitude: x,
-                // });
-                //
-                // gsap.set(bla.current, {
-                //     x: ble2.x,
-                //     y: ble2.y,
-                // });
             }, 1500);
         },
         [isGlobe]

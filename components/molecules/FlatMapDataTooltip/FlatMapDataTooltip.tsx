@@ -19,7 +19,7 @@ const FlatMapDataTooltip = ({
     const [isOpened, setIsOpened] = useState(false);
 
     const openTooltip = useCallback(() => {
-        if (isOpened) return;
+        if (isOpened || !isActive) return;
         setIsOpened(true);
 
         let height = 0;
@@ -60,7 +60,7 @@ const FlatMapDataTooltip = ({
                 });
             },
         });
-    }, [isOpened]);
+    }, [isOpened, isActive]);
 
     const closeTooltip = useCallback(() => {
         if (!isOpened) return;
