@@ -26,7 +26,12 @@ const FlatMap = ({}: ThreeDMapProps) => {
     const [isGlobe, setIsGlobe] = useState(false);
     const globeRef = useRef(null);
     const globeWrapperRef = useRef(null);
+    const bla = useRef(null);
     const chartRender = useRef(null);
+    const [tooltipPosition, setTooltipPosition] = useState({
+        x: null,
+        y: null,
+    });
     const pointSeries = useRef(null);
     const previousPolygon = useRef(null);
     const [citiesData, setCitiesData] = useState([]);
@@ -242,24 +247,25 @@ const FlatMap = ({}: ThreeDMapProps) => {
         (x = 0, y = 0, zoomOut = false) => {
             if (zoomOut) {
                 previousPolygon.current.set('active', false);
+                setTooltipPosition({ x: null, y: null });
             }
 
             setIsZoomed(!zoomOut);
             chartRender.current.animate({
                 key: 'rotationX',
-                to: -x,
-                duration: 1500,
-                easing: am5.ease.inOut(am5.ease.cubic),
-            });
-
-            chartRender.current.animate({
-                key: 'zoomLevel',
-                to: zoomOut ? 1 : 2.5,
+                to: isGlobe ? -x : -x - 90,
                 duration: 1500,
                 easing: am5.ease.inOut(am5.ease.cubic),
             });
 
             if (isGlobe) {
+                chartRender.current.animate({
+                    key: 'zoomLevel',
+                    to: zoomOut ? 1 : 2.5,
+                    duration: 1500,
+                    easing: am5.ease.inOut(am5.ease.cubic),
+                });
+
                 chartRender.current.animate({
                     key: 'rotationY',
                     to: -y,
@@ -267,19 +273,32 @@ const FlatMap = ({}: ThreeDMapProps) => {
                     easing: am5.ease.inOut(am5.ease.cubic),
                 });
             } else {
-                console.log(
-                    chartRender.current._contentHeight,
-                    chartRender.current._contentWidth,
-                    -y,
-                    -y * ((chartRender.current._contentWidth / 1300) * 10)
-                );
-                chartRender.current.animate({
-                    key: 'centerY',
-                    to: zoomOut ? 0 : -y * 4.27 * 2.5,
-                    duration: 1500,
-                    easing: am5.ease.inOut(am5.ease.cubic),
-                });
+                // chartRender.current.animate({
+                //     key: 'centerY',
+                //     to: zoomOut ? 0 : -y * 4.27 * 2.5,
+                //     duration: 1500,
+                //     easing: am5.ease.inOut(am5.ease.cubic),
+                // });
             }
+
+            setTimeout(() => {
+                setTooltipPosition(
+                    chartRender.current.convert({
+                        latitude: y,
+                        longitude: x,
+                    })
+                );
+
+                // const ble2 = chartRender.current.convert({
+                //     latitude: y,
+                //     longitude: x,
+                // });
+                //
+                // gsap.set(bla.current, {
+                //     x: ble2.x,
+                //     y: ble2.y,
+                // });
+            }, 1500);
         },
         [isGlobe]
     );
@@ -290,14 +309,14 @@ const FlatMap = ({}: ThreeDMapProps) => {
                 () => {
                     bullet.animate({
                         key: 'width',
-                        to: isZoomed ? 5 : 2.5,
+                        to: isZoomed && isGlobe ? 5 : 2.5,
                         duration: 500,
                         easing: am5.ease.inOut(am5.ease.cubic),
                     });
 
                     bullet.animate({
                         key: 'height',
-                        to: isZoomed ? 5 : 2.5,
+                        to: isZoomed && isGlobe ? 5 : 2.5,
                         duration: 500,
                         easing: am5.ease.inOut(am5.ease.cubic),
                     });
@@ -323,7 +342,11 @@ const FlatMap = ({}: ThreeDMapProps) => {
             </div>
             <div className={styles.flatMapWrapper} ref={globeWrapperRef}>
                 <section className={styles.flatMap}>
-                    <FlatMapDataTooltip isActive={isZoomed} rotateGlobe={rotateGlobe} />
+                    <FlatMapDataTooltip
+                        isActive={isZoomed}
+                        rotateGlobe={rotateGlobe}
+                        position={tooltipPosition}
+                    />
                     <div ref={globeRef}></div>
 
                     <button

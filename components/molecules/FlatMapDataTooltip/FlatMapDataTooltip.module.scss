@@ -8,6 +8,7 @@
     opacity: 0;
     transition: opacity 0.3s;
     pointer-events: none;
+    transform: translate(-12px, -12px);
 
     &.isActive {
         transition: opacity 0.3s 1.5s;
@@ -18,16 +19,19 @@
 
 .main {
     position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-12px, -12px);
+    left: 0;
+    top: 0;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 .marker {
     width: 24px;
     height: 24px;
     background-color: #3fdbed;
-    position: relative;
+    position: absolute;
+    left: 0;
+    top: 0;
 
     &:after,
     &:before {
@@ -58,4 +62,15 @@
             transform: translate(-50%, -50%) rotate(45deg);
         }
     }
+}
+
+.content {
+    max-width: 320px;
+    width: 100%;
+    background-color: #2d2c2c;
+    white-space: normal;
+}
+
+.contentInner{
+    padding: 32px 24px 24px;
 }
