@@ -25,6 +25,7 @@ const FlatMapDataTooltip = ({
 }: FlatMapDataTooltipProps) => {
     const textsRef = useRef([null]);
     const content = useRef(null);
+    const main = useRef(null);
     const [isOpened, setIsOpened] = useState(false);
 
     const openTooltip = useCallback(() => {
@@ -37,6 +38,11 @@ const FlatMapDataTooltip = ({
             autoAlpha: 0,
         });
 
+        gsap.set(main.current, {
+            x: position.x,
+            y: position.y,
+        });
+
         gsap.set(content.current, {
             width: 320,
             overwrite: true,
@@ -44,10 +50,13 @@ const FlatMapDataTooltip = ({
             onComplete: () => {
                 height = content.current.offsetHeight;
                 gsap.set(content.current, {
-                    autoAlpha: 1,
                     height: 24,
                     width: 24,
                     onComplete: () => {
+                        gsap.set(content.current, {
+                            autoAlpha: 1,
+                        });
+
                         gsap.timeline()
                             .to(content.current, {
                                 width: 320,
@@ -71,11 +80,10 @@ const FlatMapDataTooltip = ({
                 });
             },
         });
-    }, [isOpened, isActive]);
+    }, [isOpened, isActive, position]);
 
     const closeTooltip = useCallback(() => {
         if (!isOpened) return;
-        setIsOpened(false);
 
         gsap.timeline({
             onComplete: () => {
@@ -100,6 +108,9 @@ const FlatMapDataTooltip = ({
                 content.current,
                 {
                     width: 24,
+                    onComplete: () => {
+                        setIsOpened(false);
+                    }
                 },
                 '-=0.1'
             );
@@ -123,16 +134,11 @@ const FlatMapDataTooltip = ({
     return (
         <div
             className={cn(styles.wrapper, {
-                [styles.isActive]: isActive,
+                [styles.isActive]: isOpened,
             })}
             onClick={() => closeTooltip()}
         >
-            <div
-                className={styles.main}
-                style={{
-                    transform: `translate(${position.x}px, ${position.y}px)`,
-                }}
-            >
+            <div className={styles.main} ref={main}>
                 <div className={styles.marker}></div>
 
                 <div className={styles.content} ref={content}>

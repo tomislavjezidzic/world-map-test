@@ -11,7 +11,7 @@
     transform: translate(-12px, -12px);
 
     &.isActive {
-        transition: opacity 0.3s 1.5s;
+        transition: opacity 0.3s;
         opacity: 1;
         pointer-events: auto;
     }
@@ -44,7 +44,7 @@
         background-color: #2d2c2c;
         width: 2px;
         height: 12px;
-        transition: transform 0.15s 0s;
+        transition: transform 0.15s;
     }
 
     &:after {
@@ -53,12 +53,12 @@
 
     .isActive & {
         &:before {
-            transition: transform 0.5s 1.5s;
+            transition: transform 0.5s;
             transform: translate(-50%, -50%) rotate(-45deg);
         }
 
         &:after {
-            transition: transform 0.5s 1.5s;
+            transition: transform 0.5s;
             transform: translate(-50%, -50%) rotate(45deg);
         }
     }

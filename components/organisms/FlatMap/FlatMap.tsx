@@ -66,7 +66,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
             .then(csv =>
                 d3.csvParse(csv, ({ lat, lng, pop }) => {
                     // @ts-ignore
-                    if (pop > 500000) {
+                    if (pop > 200000) {
                         return {
                             lat: +lat,
                             lng: +lng,
@@ -365,7 +365,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
                         })
                     );
                 },
-                zoomOut ? 300 : 1500
+                zoomOut ? 300 : 1400
             );
 
             setIsZoomed(!zoomOut);
