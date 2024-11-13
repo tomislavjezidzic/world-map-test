@@ -23,7 +23,6 @@
     top: 0;
     white-space: nowrap;
     overflow: hidden;
-    visibility: hidden;
 }
 
 .marker {
@@ -71,6 +70,7 @@
     background-color: #373635;
     white-space: normal;
     border: 1px solid #575654;
+    visibility: hidden;
 }
 
 .contentInner {

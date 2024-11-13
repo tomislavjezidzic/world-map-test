@@ -33,7 +33,7 @@ const FlatMapDataTooltip = ({
 
         let height = 0;
 
-        gsap.set(textsRef.current, {
+        gsap.set([textsRef.current, content.current], {
             autoAlpha: 0,
         });
 
@@ -44,6 +44,7 @@ const FlatMapDataTooltip = ({
             onComplete: () => {
                 height = content.current.offsetHeight;
                 gsap.set(content.current, {
+                    autoAlpha: 1,
                     height: 24,
                     width: 24,
                     onComplete: () => {
@@ -130,7 +131,6 @@ const FlatMapDataTooltip = ({
                 className={styles.main}
                 style={{
                     transform: `translate(${position.x}px, ${position.y}px)`,
-                    visibility: position.x ? 'visible' : 'hidden',
                 }}
             >
                 <div className={styles.marker}></div>
