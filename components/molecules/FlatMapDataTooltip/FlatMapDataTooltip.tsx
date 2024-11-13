@@ -7,12 +7,21 @@ interface FlatMapDataTooltipProps {
     isActive: boolean;
     rotateGlobe?: (lat: any, lng: any, zoom: any) => void;
     position?: { x: number; y: number };
+    data?: {
+        name: string;
+        countries: string[];
+        humans: string;
+        users: string;
+        transactions: string;
+        orbs: string;
+    };
 }
 
 const FlatMapDataTooltip = ({
     isActive = false,
     rotateGlobe,
     position,
+    data = null,
 }: FlatMapDataTooltipProps) => {
     const textsRef = useRef([null]);
     const content = useRef(null);
@@ -30,6 +39,7 @@ const FlatMapDataTooltip = ({
 
         gsap.set(content.current, {
             width: 320,
+            overwrite: true,
             height: 'auto',
             onComplete: () => {
                 height = content.current.offsetHeight;
@@ -126,36 +136,37 @@ const FlatMapDataTooltip = ({
 
                 <div className={styles.content} ref={content}>
                     <div className={styles.contentInner}>
-                        <h3 ref={el => setRef(el, 0)} className={styles.continent}>Europe</h3>
+                        <h3 ref={el => setRef(el, 0)} className={styles.continent}>
+                            {data?.name}
+                        </h3>
 
                         <p ref={el => setRef(el, 1)} className={styles.countries}>
-                            Austria, Belgium, Bulgaria, Croatia, Republic of Cyprus, Czech Republic,
-                            Denmark, Estonia, Finland, France, Germany, Greece.
+                            {data?.countries?.join(', ')}.
                         </p>
 
                         <ul>
                             <li ref={el => setRef(el, 2)}>
                                 <p>Unique humans</p>
 
-                                <span>6,805,424</span>
+                                <span>{data?.humans}</span>
                             </li>
 
                             <li ref={el => setRef(el, 3)}>
                                 <p>World App users</p>
 
-                                <span>15,154,506</span>
+                                <span>{data?.users}</span>
                             </li>
 
                             <li ref={el => setRef(el, 4)}>
                                 <p>Wallet transactions</p>
 
-                                <span>151,217,997</span>
+                                <span>{data?.transactions}</span>
                             </li>
 
                             <li ref={el => setRef(el, 5)}>
                                 <p>Active Orbs</p>
 
-                                <span>500</span>
+                                <span>{data?.orbs}</span>
                             </li>
                         </ul>
                     </div>

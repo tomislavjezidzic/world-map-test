@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState, useRef } from 'react';
 
 import * as am5 from '@amcharts/amcharts5';
 import am5geodata_continentsLow from '@amcharts/amcharts5-geodata/continentsLow';
+import am5geodata_worldLow from '@amcharts/amcharts5-geodata/worldOutlineLow';
 
 import * as am5map from '@amcharts/amcharts5/map';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
@@ -20,9 +21,18 @@ if (typeof window !== 'undefined') {
     gsap.registerPlugin(useGSAP, ScrollToPlugin);
 }
 
-interface ThreeDMapProps {}
+interface FlatMapProps {
+    continentsData: {
+        id: string;
+        countries: string[];
+        humans: string;
+        users: string;
+        transactions: string;
+        orbs: string;
+    }[];
+}
 
-const FlatMap = ({}: ThreeDMapProps) => {
+const FlatMap = ({ continentsData }: FlatMapProps) => {
     const [isGlobe, setIsGlobe] = useState(false);
     const globeRef = useRef(null);
     const globeWrapperRef = useRef(null);
@@ -39,6 +49,7 @@ const FlatMap = ({}: ThreeDMapProps) => {
         y: null,
     });
     const [isZoomed, setIsZoomed] = useState(false);
+    const [clickedContinentData, setClickedContinentData] = useState(null);
 
     useGSAP(() => {
         if (isZoomed && globeWrapperRef.current) {
@@ -82,6 +93,18 @@ const FlatMap = ({}: ThreeDMapProps) => {
 
         root.setThemes([am5themes_Animated.new(root)]);
 
+        const worldSeries = chartRender.current.series.push(
+            am5map.MapPolygonSeries.new(root, {
+                geoJSON: am5geodata_worldLow,
+            })
+        );
+
+        worldSeries.mapPolygons.template.setAll({
+            fillOpacity: 0,
+            stroke: am5.color(0x3fdbed),
+            strokeWidth: 0.5,
+        });
+
         const polygonSeries = chartRender.current.series.push(
             am5map.MapPolygonSeries.new(root, {
                 geoJSON: am5geodata_continentsLow,
@@ -97,16 +120,28 @@ const FlatMap = ({}: ThreeDMapProps) => {
             interactive: true,
             fill: am5.color(0x2d2c2c),
             stroke: am5.color(0x3fdbed),
+            strokeOpacity: 0,
+            strokeWidth: 1,
             tooltipPosition: 'fixed',
             cursorOverStyle: 'pointer',
         });
 
         polygonSeries.mapPolygons.template.states.create('hover', {
             strokeWidth: 1,
+            strokeOpacity: 1,
         });
 
         polygonSeries.mapPolygons.template.events.on('click', ev => {
-            // console.log('Clicked on', ev.target.dataItem.dataContext.id);
+            const data = continentsData.find(
+                continent => continent.id === ev.target.dataItem.dataContext.id
+            );
+
+            if (data) {
+                setClickedContinentData({
+                    name: ev.target.dataItem.dataContext.name,
+                    ...data,
+                });
+            }
         });
 
         polygonSeries.mapPolygons.template.states.create('active', {
@@ -283,12 +318,16 @@ const FlatMap = ({}: ThreeDMapProps) => {
                     easing: am5.ease.inOut(am5.ease.cubic),
                 });
 
-                chartRender.current.animate({
-                    key: 'rotationY',
-                    to: -y,
-                    duration: 1500,
-                    easing: am5.ease.inOut(am5.ease.cubic),
-                });
+                chartRender.current
+                    .animate({
+                        key: 'rotationY',
+                        to: -y,
+                        duration: 1500,
+                        easing: am5.ease.inOut(am5.ease.cubic),
+                    })
+                    .then(() => {
+                        console.log(123);
+                    });
             }
             // else {
             // chartRender.current.animate({
@@ -299,14 +338,18 @@ const FlatMap = ({}: ThreeDMapProps) => {
             // });
             // }
 
-            setTimeout(() => {
-                setTooltipPosition(
-                    chartRender.current.convert({
-                        latitude: y,
-                        longitude: x,
-                    })
-                );
-            }, 1500);
+            setTimeout(
+                () => {
+                    console.log(123);
+                    setTooltipPosition(
+                        chartRender.current.convert({
+                            latitude: y,
+                            longitude: x,
+                        })
+                    );
+                },
+                zoomOut ? 300 : 1500
+            );
 
             setIsZoomed(!zoomOut);
         },
@@ -356,6 +399,7 @@ const FlatMap = ({}: ThreeDMapProps) => {
                         isActive={isZoomed}
                         rotateGlobe={rotateGlobe}
                         position={tooltipPosition}
+                        data={clickedContinentData}
                     />
                     <div ref={globeRef}></div>
 
