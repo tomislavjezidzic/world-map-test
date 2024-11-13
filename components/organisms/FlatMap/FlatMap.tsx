@@ -249,8 +249,6 @@ const FlatMap = ({}: ThreeDMapProps) => {
                 setTooltipPosition({ x: null, y: null });
             }
 
-            console.log(123);
-
             setIsZoomed(!zoomOut);
             chartRender.current.animate({
                 key: 'rotationX',

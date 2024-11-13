@@ -71,6 +71,40 @@
     white-space: normal;
 }
 
-.contentInner{
+.contentInner {
     padding: 32px 24px 24px;
+
+    ul {
+    }
+
+    li {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        padding-top: 4px;
+        padding-bottom: 16px;
+        border-top: 1px solid #575654;
+
+        p {
+            font-size: 12px;
+            line-height: 1.4;
+            color: #9d9b96;
+        }
+
+        span {
+            font-size: 20px;
+        }
+    }
+}
+
+.continent {
+    padding-bottom: 8px;
+    font-size: 24px;
+}
+
+.countries {
+    color: #9d9b96;
+    padding-bottom: 48px;
+    font-size: 12px;
+    line-height: 1.4;
 }

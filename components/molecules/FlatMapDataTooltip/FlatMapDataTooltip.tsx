@@ -126,9 +126,9 @@ const FlatMapDataTooltip = ({
 
                 <div className={styles.content} ref={content}>
                     <div className={styles.contentInner}>
-                        <h3 ref={el => setRef(el, 0)}>Europe</h3>
+                        <h3 ref={el => setRef(el, 0)} className={styles.continent}>Europe</h3>
 
-                        <p ref={el => setRef(el, 1)}>
+                        <p ref={el => setRef(el, 1)} className={styles.countries}>
                             Austria, Belgium, Bulgaria, Croatia, Republic of Cyprus, Czech Republic,
                             Denmark, Estonia, Finland, France, Germany, Greece.
                         </p>
