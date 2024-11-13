@@ -93,6 +93,14 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
 
         root.setThemes([am5themes_Animated.new(root)]);
 
+        const graticuleSeries = chartRender.current.series.push(
+            am5map.GraticuleSeries.new(root, {
+                stroke: am5.color(0x575654),
+            })
+        );
+
+        console.log(graticuleSeries);
+
         const worldSeries = chartRender.current.series.push(
             am5map.MapPolygonSeries.new(root, {
                 geoJSON: am5geodata_worldLow,
@@ -157,16 +165,6 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
         // polygonTemplate.tooltipText = '{name}';
         polygonTemplate.fill = am5.color('#ffffff');
         polygonTemplate.stroke = am5.color('#ffffff');
-
-        const graticuleSeries = chartRender.current.series.insertIndex(
-            0,
-            am5map.GraticuleSeries.new(root, {})
-        );
-
-        // TODO: animate line series
-        graticuleSeries.mapLines.template.setAll({
-            stroke: am5.color(0x575654),
-        });
 
         const backgroundSeries = chartRender.current.series.unshift(
             am5map.MapPolygonSeries.new(root, {})
