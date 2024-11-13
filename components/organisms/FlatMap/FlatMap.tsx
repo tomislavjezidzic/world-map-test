@@ -136,6 +136,8 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
                 continent => continent.id === ev.target.dataItem.dataContext.id
             );
 
+            console.log(ev.target.dataItem.dataContext.id);
+
             if (data) {
                 setClickedContinentData({
                     name: ev.target.dataItem.dataContext.name,
@@ -318,16 +320,12 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
                     easing: am5.ease.inOut(am5.ease.cubic),
                 });
 
-                chartRender.current
-                    .animate({
-                        key: 'rotationY',
-                        to: -y,
-                        duration: 1500,
-                        easing: am5.ease.inOut(am5.ease.cubic),
-                    })
-                    .then(() => {
-                        console.log(123);
-                    });
+                chartRender.current.animate({
+                    key: 'rotationY',
+                    to: -y,
+                    duration: 1500,
+                    easing: am5.ease.inOut(am5.ease.cubic),
+                });
             }
             // else {
             // chartRender.current.animate({
@@ -340,7 +338,6 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
 
             setTimeout(
                 () => {
-                    console.log(123);
                     setTooltipPosition(
                         chartRender.current.convert({
                             latitude: y,

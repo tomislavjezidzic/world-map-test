@@ -87,7 +87,7 @@ const FlatExamplePage = ({}: FlatExampleProps) => {
                         orbs: '120',
                     },
                     {
-                        id: 'australia',
+                        id: 'oceania',
                         countries: ['Austria', 'Belgium', 'Bulgaria'],
                         humans: '6,805,424',
                         users: '15,154,506',
