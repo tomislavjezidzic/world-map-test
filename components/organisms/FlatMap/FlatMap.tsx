@@ -13,12 +13,13 @@ import * as d3 from 'd3';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { ScrollToPlugin } from 'gsap/dist/ScrollToPlugin';
+import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
 import { data } from '@organisms/FlatMap/data/continentsAdditionalData';
 
 import FlatMapDataTooltip from '@molecules/FlatMapDataTooltip';
 
 if (typeof window !== 'undefined') {
-    gsap.registerPlugin(useGSAP, ScrollToPlugin);
+    gsap.registerPlugin(useGSAP, ScrollToPlugin, ScrollTrigger);
 }
 
 interface FlatMapProps {
@@ -99,7 +100,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
             })
         );
 
-        console.log(graticuleSeries);
+        graticuleSeries.set('visible', false);
 
         const worldSeries = chartRender.current.series.push(
             am5map.MapPolygonSeries.new(root, {
@@ -112,6 +113,8 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
             stroke: am5.color(0x3fdbed),
             strokeWidth: 0.5,
         });
+
+        worldSeries.set('visible', false);
 
         const polygonSeries = chartRender.current.series.push(
             am5map.MapPolygonSeries.new(root, {
@@ -180,6 +183,8 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
             geometry: am5map.getGeoRectangle(90, 180, -90, -180),
         });
 
+        backgroundSeries.set('visible', false);
+
         chartRender.current.animate({
             key: 'rotationX',
             from: 0,
@@ -194,6 +199,8 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
                 geoJSON: data,
             })
         );
+
+        markerSeries.set('visible', false);
 
         markerSeries.bullets.push((root, series, dataItem) => {
             const container = am5.Container.new(root, {
@@ -235,6 +242,8 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
                 longitudeField: 'lng',
             })
         );
+
+        pointSeries.current.set('visible', false);
 
         pointSeries.current.bullets.push(() => {
             const rect = am5.Rectangle.new(root, {
@@ -278,6 +287,19 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
             }
         );
 
+        ScrollTrigger.create({
+            trigger: globeRef.current,
+            start: 'top center',
+            onEnter: () => {
+                chartRender.current.appear(300);
+                graticuleSeries.appear(1000, 300);
+                backgroundSeries.appear(1000, 300);
+                worldSeries.appear(1500, 1000);
+                polygonSeries.appear(1500, 1000);
+                pointSeries.current.appear(1500, 1800);
+                markerSeries.appear(1500, 2500);
+            },
+        });
         return () => {
             root.dispose();
         };
