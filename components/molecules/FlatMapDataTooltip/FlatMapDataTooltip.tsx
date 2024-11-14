@@ -23,9 +23,10 @@ const FlatMapDataTooltip = ({
     position,
     data = null,
 }: FlatMapDataTooltipProps) => {
-    const textsRef = useRef([null]);
-    const content = useRef(null);
-    const main = useRef(null);
+    const $texts = useRef([null]);
+    const $content = useRef(null);
+    const $main = useRef(null);
+    const $marker = useRef(null);
     const [isOpened, setIsOpened] = useState(false);
 
     const openTooltip = useCallback(() => {
@@ -34,42 +35,71 @@ const FlatMapDataTooltip = ({
 
         let height = 0;
 
-        gsap.set([textsRef.current, content.current], {
+        gsap.set([$texts.current, $content.current], {
             autoAlpha: 0,
         });
 
-        gsap.set(main.current, {
+        gsap.set($main.current, {
             x: position.x,
             y: position.y,
         });
 
-        gsap.set(content.current, {
+        const offsetRight = -(position.x + 24 - window.innerWidth);
+
+        let offsetToLeft = 0;
+
+        if (offsetRight < 320) {
+            offsetToLeft = (320 - offsetRight) / 2;
+        }
+
+        console.log(offsetToLeft);
+
+        gsap.set($content.current, {
             width: 320,
             overwrite: true,
             height: 'auto',
             onComplete: () => {
-                height = content.current.offsetHeight;
-                gsap.set(content.current, {
+                height = $content.current.offsetHeight;
+                gsap.set($content.current, {
                     height: 24,
                     width: 24,
                     onComplete: () => {
-                        gsap.set(content.current, {
+                        gsap.set($content.current, {
                             autoAlpha: 1,
                         });
 
                         gsap.timeline()
-                            .to(content.current, {
-                                width: 320,
-                            })
+                            .add('start')
                             .to(
-                                content.current,
+                                $content.current,
+                                {
+                                    width: 320,
+                                },
+                                'start'
+                            )
+                            .to(
+                                $main.current,
+                                {
+                                    x: position.x - offsetToLeft,
+                                },
+                                'start'
+                            )
+                            .to(
+                                $marker.current,
+                                {
+                                    x: offsetToLeft,
+                                },
+                                'start'
+                            )
+                            .to(
+                                $content.current,
                                 {
                                     height: height,
                                 },
                                 '-=0.1'
                             )
                             .to(
-                                textsRef.current,
+                                $texts.current,
                                 {
                                     autoAlpha: 1,
                                     stagger: 0.07,
@@ -90,7 +120,7 @@ const FlatMapDataTooltip = ({
                 rotateGlobe(0, 0, true);
             },
         })
-            .to(textsRef.current, {
+            .to($texts.current, {
                 autoAlpha: 0,
                 stagger: {
                     each: 0.03,
@@ -98,21 +128,36 @@ const FlatMapDataTooltip = ({
                 },
             })
             .to(
-                content.current,
+                $content.current,
                 {
                     height: 24,
                 },
                 '-=0.2'
             )
+            .add('end', '-=0.1')
             .to(
-                content.current,
+                $main.current,
+                {
+                    x: position.x,
+                },
+                'end'
+            )
+            .to(
+                $marker.current,
+                {
+                    x: 0,
+                },
+                'end'
+            )
+            .to(
+                $content.current,
                 {
                     width: 24,
                     onComplete: () => {
                         setIsOpened(false);
                     },
                 },
-                '-=0.1'
+                'end'
             );
     }, [isOpened, rotateGlobe]);
 
@@ -126,9 +171,9 @@ const FlatMapDataTooltip = ({
 
     const setRef = useCallback(
         (el: HTMLElement, key: number) => {
-            void (textsRef.current[key] = el);
+            void ($texts.current[key] = el);
         },
-        [textsRef]
+        [$texts]
     );
 
     const escFunction = useCallback(
@@ -155,10 +200,10 @@ const FlatMapDataTooltip = ({
             })}
             onClick={() => closeTooltip()}
         >
-            <div className={styles.main} ref={main}>
-                <div className={styles.marker}></div>
+            <div className={styles.main} ref={$main}>
+                <div className={styles.marker} ref={$marker}></div>
 
-                <div className={styles.content} ref={content}>
+                <div className={styles.content} ref={$content}>
                     <div className={styles.contentInner}>
                         <h3 ref={el => setRef(el, 0)} className={styles.continent}>
                             {data?.name}

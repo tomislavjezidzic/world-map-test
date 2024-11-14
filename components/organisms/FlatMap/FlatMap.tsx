@@ -339,13 +339,13 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
             } else {
                 // save current position
                 setPrevMarkerPosition({
-                    x: isGlobe ? -x : -x - 45,
+                    x: -x - (isGlobe ? 20 : 45),
                     y,
                 });
 
                 $chartRender.current.animate({
                     key: 'rotationX',
-                    to: isGlobe ? -x : -x - 45,
+                    to: -x - (isGlobe ? 20 : 45),
                     duration: 1500,
                     easing: am5.ease.inOut(am5.ease.cubic),
                 });
@@ -361,7 +361,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
 
                 $chartRender.current.animate({
                     key: 'rotationY',
-                    to: -y,
+                    to: -y + (zoomOut ? 0 : 25),
                     duration: 1500,
                     easing: am5.ease.inOut(am5.ease.cubic),
                 });
