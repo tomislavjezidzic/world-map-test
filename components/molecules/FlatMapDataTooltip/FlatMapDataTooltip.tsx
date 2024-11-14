@@ -52,8 +52,6 @@ const FlatMapDataTooltip = ({
             offsetToLeft = (320 - offsetRight) / 2;
         }
 
-        console.log(offsetToLeft);
-
         gsap.set($content.current, {
             width: 320,
             overwrite: true,
