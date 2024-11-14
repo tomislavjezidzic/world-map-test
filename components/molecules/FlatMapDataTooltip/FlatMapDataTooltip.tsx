@@ -5,6 +5,7 @@ import gsap from 'gsap';
 
 interface FlatMapDataTooltipProps {
     isActive: boolean;
+    isAnimating: boolean;
     rotateGlobe?: (lat: number, lng: number, zoom: boolean) => void;
     position?: { x: number; y: number };
     data?: {
@@ -18,6 +19,7 @@ interface FlatMapDataTooltipProps {
 }
 
 const FlatMapDataTooltip = ({
+    isAnimating = false,
     isActive = false,
     rotateGlobe,
     position,
@@ -54,7 +56,6 @@ const FlatMapDataTooltip = ({
 
         gsap.set($content.current, {
             width: 320,
-            overwrite: true,
             height: 'auto',
             onComplete: () => {
                 height = $content.current.offsetHeight;
@@ -111,15 +112,17 @@ const FlatMapDataTooltip = ({
     }, [isOpened, isActive, position]);
 
     const closeTooltip = useCallback(() => {
-        if (!isOpened) return;
+        if (!isOpened || isAnimating) return;
 
         gsap.timeline({
+            overwrite: true,
             onComplete: () => {
                 rotateGlobe(0, 0, true);
             },
         })
             .to($texts.current, {
                 autoAlpha: 0,
+                overwrite: true,
                 stagger: {
                     each: 0.03,
                     from: 'end',
@@ -129,6 +132,7 @@ const FlatMapDataTooltip = ({
                 $content.current,
                 {
                     height: 24,
+                    overwrite: true,
                 },
                 '-=0.2'
             )
@@ -136,6 +140,7 @@ const FlatMapDataTooltip = ({
             .to(
                 $main.current,
                 {
+                    overwrite: true,
                     x: position.x,
                 },
                 'end'
@@ -143,6 +148,7 @@ const FlatMapDataTooltip = ({
             .to(
                 $marker.current,
                 {
+                    overwrite: true,
                     x: 0,
                 },
                 'end'
@@ -157,7 +163,7 @@ const FlatMapDataTooltip = ({
                 },
                 'end'
             );
-    }, [isOpened, rotateGlobe]);
+    }, [isOpened, rotateGlobe, isAnimating]);
 
     useEffect(() => {
         if (position.x) {

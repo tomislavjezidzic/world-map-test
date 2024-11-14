@@ -44,6 +44,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
     });
     // TODO: change to true on mobile
     const [isGlobe, setIsGlobe] = useState(false);
+    const [isAnimating, setIsAnimating] = useState(false);
     const [isScrollLoaded, setIsScrollLoaded] = useState(false);
     const [citiesData, setCitiesData] = useState([]);
     const [isZoomed, setIsZoomed] = useState(false);
@@ -74,7 +75,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
             .then(csv =>
                 d3.csvParse(csv, ({ lat, lng, pop }) => {
                     // @ts-ignore
-                    if (pop > 200000) {
+                    if (pop > 50000) {
                         return {
                             lat: +lat,
                             lng: +lng,
@@ -122,6 +123,8 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
         $continentsSeries.current.mapPolygons.template.on(
             'active',
             (active: boolean, target: { geoCentroid: () => any }) => {
+                if (isAnimating) return;
+
                 if ($previousPolygon && $previousPolygon?.current != target) {
                     $previousPolygon.current?.set('active', false);
                 }
@@ -136,7 +139,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
                 $previousPolygon.current = target;
             }
         );
-    }, [isGlobe, isZoomed]);
+    }, [isGlobe, isZoomed, isAnimating]);
 
     const populateTooltipDataEvent = useCallback(() => {
         $continentsSeries.current.mapPolygons.template.events.on('click', ev => {
@@ -278,8 +281,8 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
 
         $pointSeries.current.bullets.push(() => {
             const rect = am5.Rectangle.new(root, {
-                width: 2.5,
-                height: 2.5,
+                width: 1.5,
+                height: 1.5,
                 fill: am5.color(0x3e5b64),
             });
 
@@ -322,6 +325,9 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
 
     const rotateGlobe = useCallback(
         (x = 0, y = 0, zoomOut = false) => {
+            if (isAnimating) return;
+            setIsAnimating(true);
+
             if (zoomOut) {
                 $previousPolygon.current.set('active', false);
 
@@ -375,15 +381,17 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
                             longitude: x,
                         })
                     );
+
+                    setIsAnimating(false);
                 },
                 // 1400ms delay because rotate animation (1500) - animate method doesnt have on complete callback so we need to use this dirty solution
                 // 300ms delay for close animation to complete
-                zoomOut ? 300 : 1400
+                zoomOut ? 10 : 1400
             );
 
             setIsZoomed(!zoomOut);
         },
-        [isGlobe, prevMarkerPosition]
+        [isGlobe, prevMarkerPosition, isAnimating]
     );
 
     // enlarge points if map type is globe and map is zoomed
@@ -394,14 +402,14 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
                 () => {
                     bullet.animate({
                         key: 'width',
-                        to: isZoomed ? 5 : 2.5,
+                        to: isZoomed ? 5 : 1.5,
                         duration: 500,
                         easing: am5.ease.inOut(am5.ease.cubic),
                     });
 
                     bullet.animate({
                         key: 'height',
-                        to: isZoomed ? 5 : 2.5,
+                        to: isZoomed ? 5 : 1.5,
                         duration: 500,
                         easing: am5.ease.inOut(am5.ease.cubic),
                     });
@@ -429,13 +437,19 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
         <div className={styles.flatMapWrapper} ref={$globeWrapper}>
             <section className={styles.flatMap}>
                 <FlatMapDataTooltip
+                    isAnimating={isAnimating}
                     isActive={isZoomed}
                     rotateGlobe={rotateGlobe}
                     position={tooltipPosition}
                     data={clickedContinentData}
                 />
 
-                <div ref={$globe}></div>
+                <div
+                    ref={$globe}
+                    style={{
+                        pointerEvents: isZoomed ? 'none' : 'all',
+                    }}
+                ></div>
 
                 <button
                     className={styles.button}
