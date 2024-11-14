@@ -60,10 +60,54 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
     const $continentsSeries = useRef(null);
     const $markerSeries = useRef(null);
 
+    const [velocityX, setVelocityX] = useState(0);
+    const [prevDragPosition, setPrevDragPosition] = useState({ rotationX: 0 });
+
+    // damping movement on drag
+    useEffect(() => {
+        if ($globe.current && $chartRender.current && !isAnimating) {
+            const dragMove = () => {
+                const { rotationX } = $chartRender.current._settings;
+                const newVelocityX = rotationX - prevDragPosition.rotationX;
+                setVelocityX(newVelocityX);
+                setPrevDragPosition({ rotationX });
+            };
+
+            const dragEnd = () => {
+                $chartRender.current.animate({
+                    key: 'rotationX',
+                    from: $chartRender.current._settings.rotationX,
+                    to: $chartRender.current._settings.rotationX + velocityX,
+                    duration: 2000,
+                    easing: am5.ease.out(am5.ease.cubic),
+                });
+
+                setVelocityX(velocityX * 0.9); // decay factor
+                if (Math.abs(velocityX) < 0.01) {
+                    setVelocityX(0);
+                }
+            };
+
+            $globe.current.addEventListener('mousemove', dragMove, true);
+            $globe.current.addEventListener('mouseup', dragEnd, true);
+
+            return () => {
+                $globe.current.removeEventListener('mousemove', dragMove, true);
+                $globe.current.removeEventListener('mouseup', dragEnd, true);
+            };
+        }
+    }, [velocityX, $globe.current, $chartRender.current, isAnimating]);
+
     useGSAP(() => {
         if (isZoomed && $globeWrapper.current) {
+            const offset = (window.innerHeight - $globeWrapper.current.offsetHeight) / 2;
             gsap.to(window, {
-                scrollTo: $globeWrapper.current,
+                duration: 1,
+                ease: 'power4.out',
+                scrollTo: {
+                    y: $globeWrapper.current,
+                    offsetY: offset,
+                },
             });
         }
     }, [isZoomed]);
@@ -75,7 +119,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
             .then(csv =>
                 d3.csvParse(csv, ({ lat, lng, pop }) => {
                     // @ts-ignore
-                    if (pop > 50000) {
+                    if (pop > 200000) {
                         return {
                             lat: +lat,
                             lng: +lng,
@@ -353,7 +397,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
                     key: 'rotationX',
                     to: -x - (isGlobe ? 20 : 45),
                     duration: 1500,
-                    easing: am5.ease.inOut(am5.ease.cubic),
+                    easing: am5.ease.out(am5.ease.cubic),
                 });
             }
 
@@ -362,14 +406,14 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
                     key: 'zoomLevel',
                     to: zoomOut ? 1 : 2.5,
                     duration: 1500,
-                    easing: am5.ease.inOut(am5.ease.cubic),
+                    easing: am5.ease.out(am5.ease.cubic),
                 });
 
                 $chartRender.current.animate({
                     key: 'rotationY',
                     to: -y + (zoomOut ? 0 : 25),
                     duration: 1500,
-                    easing: am5.ease.inOut(am5.ease.cubic),
+                    easing: am5.ease.out(am5.ease.cubic),
                 });
             }
 
@@ -402,14 +446,14 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
                 () => {
                     bullet.animate({
                         key: 'width',
-                        to: isZoomed ? 5 : 1.5,
+                        to: isZoomed ? 3 : 1.5,
                         duration: 500,
                         easing: am5.ease.inOut(am5.ease.cubic),
                     });
 
                     bullet.animate({
                         key: 'height',
-                        to: isZoomed ? 5 : 1.5,
+                        to: isZoomed ? 3 : 1.5,
                         duration: 500,
                         easing: am5.ease.inOut(am5.ease.cubic),
                     });
