@@ -1,11 +1,17 @@
 import { GetStaticProps } from 'next';
 import FlatMap from '@organisms/FlatMap/FlatMapWrapper';
+import Image from 'next/image';
+import aboveMapImage from '@public/images/above.jpg';
+import belowMapImage from '@public/images/below.jpg';
 
 interface FlatExampleProps {}
 
 const FlatExamplePage = ({}: FlatExampleProps) => {
     return (
         <>
+            <div>
+                <Image src={aboveMapImage} alt="above" />
+            </div>
             <FlatMap
                 continentsData={[
                     {
@@ -96,6 +102,10 @@ const FlatExamplePage = ({}: FlatExampleProps) => {
                     },
                 ]}
             />
+
+            <div>
+                <Image src={belowMapImage} alt="below" />
+            </div>
         </>
     );
 };
