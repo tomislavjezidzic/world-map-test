@@ -1,7 +1,8 @@
 .flatMapWrapper {
     padding-top: 32px;
     padding-bottom: 48px;
-    overflow: hidden;
+    z-index: 2;
+    position: relative;
 }
 
 .flatMap {

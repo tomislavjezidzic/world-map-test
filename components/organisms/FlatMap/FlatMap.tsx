@@ -388,14 +388,28 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
                 });
             } else {
                 // save current position
+                let offsetX = -x - (isGlobe ? 20 : 45);
+
                 setPrevMarkerPosition({
-                    x: -x - (isGlobe ? 20 : 45),
+                    x: offsetX,
                     y,
                 });
 
+                const rotationCount = $chartRender.current._settings.rotationX / 360;
+
+                const sumRotationCount = ($chartRender.current._settings.rotationX - offsetX) / 360;
+
+                const toSmaller = Math.floor(rotationCount);
+                const toBigger = Math.ceil(rotationCount);
+                let multiplier = toSmaller;
+
+                if (sumRotationCount > toBigger) {
+                    multiplier = toBigger;
+                }
+
                 $chartRender.current.animate({
                     key: 'rotationX',
-                    to: -x - (isGlobe ? 20 : 45),
+                    to: multiplier * 360 + offsetX,
                     duration: 1500,
                     easing: am5.ease.out(am5.ease.cubic),
                 });
