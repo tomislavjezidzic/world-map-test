@@ -9,6 +9,7 @@
     transition: opacity 0.3s;
     pointer-events: none;
     transform: translate(-12px, -12px);
+    cursor: pointer;
 
     &.isActive {
         transition: opacity 0.3s;

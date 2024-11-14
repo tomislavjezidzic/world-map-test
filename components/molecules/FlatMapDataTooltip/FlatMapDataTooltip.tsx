@@ -1,11 +1,11 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
 import styles from './FlatMapDataTooltip.module.scss';
 import cn from 'classnames';
-import { useCallback, useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 
 interface FlatMapDataTooltipProps {
     isActive: boolean;
-    rotateGlobe?: (lat: any, lng: any, zoom: any) => void;
+    rotateGlobe?: (lat: number, lng: number, zoom: boolean) => void;
     position?: { x: number; y: number };
     data?: {
         name: string;
@@ -110,7 +110,7 @@ const FlatMapDataTooltip = ({
                     width: 24,
                     onComplete: () => {
                         setIsOpened(false);
-                    }
+                    },
                 },
                 '-=0.1'
             );
@@ -130,6 +130,23 @@ const FlatMapDataTooltip = ({
         },
         [textsRef]
     );
+
+    const escFunction = useCallback(
+        (event: { key: string }) => {
+            if (event.key === 'Escape') {
+                closeTooltip();
+            }
+        },
+        [isOpened]
+    );
+
+    useEffect(() => {
+        document.addEventListener('keydown', escFunction, false);
+
+        return () => {
+            document.removeEventListener('keydown', escFunction, false);
+        };
+    }, [isOpened]);
 
     return (
         <div

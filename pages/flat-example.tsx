@@ -103,7 +103,7 @@ const FlatExamplePage = ({}: FlatExampleProps) => {
 export const getStaticProps: GetStaticProps = () => {
     return {
         props: {
-            title: 'Flat Example Page',
+            title: 'AmChart 5 Example Page',
         },
         revalidate: 3600,
     };

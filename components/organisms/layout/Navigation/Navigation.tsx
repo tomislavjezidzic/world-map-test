@@ -37,7 +37,7 @@ const Navigation = ({}: NavigationProps) => {
                                             [styles.isActive]: pathname === '/flat-example',
                                         })}
                                     >
-                                        <Link href="/flat-example">Flat (SVG) Example</Link>
+                                        <Link href="/flat-example">AmChart 5 Example</Link>
                                     </li>
                                 </ul>
                             </nav>

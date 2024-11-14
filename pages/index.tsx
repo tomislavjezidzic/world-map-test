@@ -6,7 +6,6 @@ const IndexPage = ({}: HomepageProps) => {
     return (
         <>
             <h1>World map test</h1>
-
         </>
     );
 };
