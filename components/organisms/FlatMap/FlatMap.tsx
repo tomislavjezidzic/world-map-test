@@ -147,10 +147,12 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
             .then(csv =>
                 d3.csvParse(csv, ({ lat, lng, pop }) => {
                     // @ts-ignore
-                    return {
-                        lat: +lat,
-                        lng: +lng,
-                    };
+                    if (pop > 20000) {
+                        return {
+                            lat: +lat,
+                            lng: +lng,
+                        };
+                    }
                 })
             )
             .then(data => {
