@@ -147,15 +147,39 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
             .then(csv =>
                 d3.csvParse(csv, ({ lat, lng, pop }) => {
                     // @ts-ignore
-                    if (pop > 200000) {
-                        return {
-                            lat: +lat,
-                            lng: +lng,
-                        };
-                    }
+                    return {
+                        lat: +lat,
+                        lng: +lng,
+                    };
                 })
             )
-            .then(setCitiesData);
+            .then(data => {
+                const filteredData = [];
+
+                for (let i = 0; i < data.length; i++) {
+                    const point = data[i];
+                    let keepPoint = true;
+
+                    for (let j = 0; j < data.length; j++) {
+                        if (i !== j) {
+                            const otherPoint = data[j];
+                            const latDiff = Math.abs(point.lat - otherPoint.lat);
+                            const lngDiff = Math.abs(point.lng - otherPoint.lng);
+
+                            if (latDiff < 0.3 && lngDiff < 0.3) {
+                                keepPoint = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (keepPoint) {
+                        filteredData.push(point);
+                    }
+                }
+                console.log(filteredData);
+                setCitiesData(filteredData);
+            });
     }, []);
 
     const createMarkers = useCallback(root => {
@@ -349,8 +373,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
             const rect = am5.Rectangle.new(root, {
                 width: 2,
                 height: 2,
-                // fill: am5.color(0x3e5b64),
-                fill: am5.color(0xff0000),
+                fill: am5.color(0x3e5b64),
             });
 
             return am5.Bullet.new(root, {
