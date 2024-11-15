@@ -117,11 +117,15 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
             };
 
             $globe.current.addEventListener('mousemove', dragMove, true);
+            $globe.current.addEventListener('touchmove', dragMove, true);
             $globe.current.addEventListener('mouseup', dragEnd, true);
+            $globe.current.addEventListener('touchend', dragEnd, true);
 
             return () => {
                 $globe.current.removeEventListener('mousemove', dragMove, true);
+                $globe.current.removeEventListener('touchmove', dragMove, true);
                 $globe.current.removeEventListener('mouseup', dragEnd, true);
+                $globe.current.removeEventListener('touchend', dragEnd, true);
             };
         }
     }, [velocityX, $globe.current, $chartRender.current, isAnimating, counter]);
