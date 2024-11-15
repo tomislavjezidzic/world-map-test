@@ -78,11 +78,11 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
                     key: 'rotationX',
                     from: $chartRender.current._settings.rotationX,
                     to: $chartRender.current._settings.rotationX + velocityX,
-                    duration: 2000,
+                    duration: Math.abs(velocityX) * 10,
                     easing: am5.ease.out(am5.ease.cubic),
                 });
 
-                setVelocityX(velocityX * 0.9); // decay factor
+                setVelocityX(velocityX * 0.2); // decay factor
                 if (Math.abs(velocityX) < 0.01) {
                     setVelocityX(0);
                 }
