@@ -177,7 +177,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
                         filteredData.push(point);
                     }
                 }
-                console.log(filteredData);
+
                 setCitiesData(filteredData);
             });
     }, []);
