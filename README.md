@@ -1,6 +1,6 @@
 ## Versions
 
--   Next.js 15.0.0-rc.0
+-   Next.js 15.0.2
 -   React 18.3.1
 -   ReactDOM 18.3.1
 -   Node 20.x
