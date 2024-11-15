@@ -166,7 +166,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
                             const latDiff = Math.abs(point.lat - otherPoint.lat);
                             const lngDiff = Math.abs(point.lng - otherPoint.lng);
 
-                            if (latDiff < 0.3 && lngDiff < 0.3) {
+                            if (latDiff < 0.35 && lngDiff < 0.35) {
                                 keepPoint = false;
                                 break;
                             }
