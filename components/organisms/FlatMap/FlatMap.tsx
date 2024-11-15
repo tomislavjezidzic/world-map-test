@@ -347,9 +347,10 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
 
         $pointSeries.current.bullets.push(() => {
             const rect = am5.Rectangle.new(root, {
-                width: 1.5,
-                height: 1.5,
-                fill: am5.color(0x3e5b64),
+                width: 2,
+                height: 2,
+                // fill: am5.color(0x3e5b64),
+                fill: am5.color(0xff0000),
             });
 
             return am5.Bullet.new(root, {
@@ -476,14 +477,14 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
                 () => {
                     bullet.animate({
                         key: 'width',
-                        to: isZoomed ? 3 : 1.5,
+                        to: isZoomed ? 3 : 2,
                         duration: 500,
                         easing: am5.ease.inOut(am5.ease.cubic),
                     });
 
                     bullet.animate({
                         key: 'height',
-                        to: isZoomed ? 3 : 1.5,
+                        to: isZoomed ? 3 : 2,
                         duration: 500,
                         easing: am5.ease.inOut(am5.ease.cubic),
                     });
