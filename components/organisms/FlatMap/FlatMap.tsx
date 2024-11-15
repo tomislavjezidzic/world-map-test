@@ -63,6 +63,27 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
     const [velocityX, setVelocityX] = useState(0);
     const [prevDragPosition, setPrevDragPosition] = useState({ rotationX: 0 });
 
+    const infiniteRotation = useCallback(
+        (from: number = null) => {
+            if ($chartRender?.current) {
+                const fromRotation = from || $chartRender.current._settings.rotationX;
+                $chartRender.current.animate({
+                    key: 'rotationX',
+                    from: fromRotation,
+                    to: fromRotation + 360,
+                    duration: 90000,
+                    loops: Infinity,
+                });
+            }
+        },
+        [$chartRender]
+    );
+
+    const continueRotation = useCallback(() => {
+        infiniteRotation();
+    }, []);
+
+    let counter = 0;
     // damping movement on drag
     useEffect(() => {
         if ($globe.current && $chartRender.current && !isAnimating) {
@@ -72,20 +93,27 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
                 setVelocityX(newVelocityX);
                 setPrevDragPosition({ rotationX });
             };
-
             const dragEnd = () => {
                 $chartRender.current.animate({
                     key: 'rotationX',
                     from: $chartRender.current._settings.rotationX,
                     to: $chartRender.current._settings.rotationX + velocityX,
                     duration: Math.abs(velocityX) * 10,
-                    easing: am5.ease.out(am5.ease.cubic),
+                    easing: am5.ease.out(am5.ease.exp),
                 });
+                counter++;
 
                 setVelocityX(velocityX * 0.2); // decay factor
                 if (Math.abs(velocityX) < 0.01) {
                     setVelocityX(0);
                 }
+
+                setTimeout(
+                    () => {
+                        continueRotation();
+                    },
+                    Math.abs(velocityX) * 10
+                );
             };
 
             $globe.current.addEventListener('mousemove', dragMove, true);
@@ -96,7 +124,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
                 $globe.current.removeEventListener('mouseup', dragEnd, true);
             };
         }
-    }, [velocityX, $globe.current, $chartRender.current, isAnimating]);
+    }, [velocityX, $globe.current, $chartRender.current, isAnimating, counter]);
 
     useGSAP(() => {
         if (isZoomed && $globeWrapper.current) {
@@ -294,13 +322,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
 
         $backgroundSeries.current.set('visible', false);
 
-        $chartRender.current.animate({
-            key: 'rotationX',
-            from: 0,
-            to: 360,
-            duration: 90000,
-            loops: Infinity,
-        });
+        infiniteRotation();
 
         // create markers
         $markerSeries.current = $chartRender.current.series.push(
@@ -379,13 +401,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
                 setTooltipPosition({ x: null, y: null });
 
                 // continue rotation from current position
-                $chartRender.current.animate({
-                    key: 'rotationX',
-                    from: prevMarkerPosition.x,
-                    to: 360 + prevMarkerPosition.x,
-                    duration: 90000,
-                    loops: Infinity,
-                });
+                infiniteRotation(prevMarkerPosition.x);
             } else {
                 // save current position
                 let offsetX = -x - (isGlobe ? 20 : 45);
@@ -505,7 +521,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
                 <div
                     ref={$globe}
                     style={{
-                        pointerEvents: isZoomed ? 'none' : 'all',
+                        pointerEvents: isAnimating ? 'none' : 'all',
                     }}
                 ></div>
 
