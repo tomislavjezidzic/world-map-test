@@ -3,10 +3,18 @@ import FlatMap from '@organisms/FlatMap/FlatMapWrapper';
 import Image from 'next/image';
 import aboveMapImage from '@public/images/above.jpg';
 import belowMapImage from '@public/images/below.jpg';
+import { useEffect } from 'react';
 
 interface FlatExampleProps {}
 
 const FlatExamplePage = ({}: FlatExampleProps) => {
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            window.history.scrollRestoration = 'manual';
+            window.scrollTo(0, 0);
+        }
+    }, []);
+
     return (
         <>
             <div>

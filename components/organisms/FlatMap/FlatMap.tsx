@@ -43,7 +43,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
         y: null,
     });
     // TODO: change to true on mobile
-    const [isGlobe, setIsGlobe] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
     const [isAnimating, setIsAnimating] = useState(false);
     const [isScrollLoaded, setIsScrollLoaded] = useState(false);
     const [citiesData, setCitiesData] = useState([]);
@@ -241,7 +241,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
                 $previousPolygon.current = target;
             }
         );
-    }, [isGlobe, isZoomed, isAnimating]);
+    }, [isMobile, isZoomed, isAnimating]);
 
     const populateTooltipDataEvent = useCallback(() => {
         $continentsSeries.current.mapPolygons.template.events.on('click', ev => {
@@ -264,7 +264,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
         $chartRender.current = root.container.children.push(
             am5map.MapChart.new(root, {
                 panX: 'rotateX',
-                panY: isGlobe ? 'rotateY' : 'none',
+                panY: isMobile ? 'rotateY' : 'none',
                 wheelY: 'none',
                 // TODO: change to am5map.geoOrthographic() on mobile
                 projection: am5map.geoNaturalEarth1(),
@@ -394,7 +394,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
         return () => {
             root.dispose();
         };
-    }, [isGlobe, citiesData, $previousPolygon]);
+    }, [isMobile, citiesData, $previousPolygon]);
 
     const globeElementsAppear = useCallback(() => {
         $chartRender.current.appear(300);
@@ -434,7 +434,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
                 infiniteRotation(prevMarkerPosition.x);
             } else {
                 // save current position
-                let offsetX = -x - (isGlobe ? 20 : 45);
+                let offsetX = -x - (isMobile ? 20 : 45);
 
                 setPrevMarkerPosition({
                     x: offsetX,
@@ -461,7 +461,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
                 });
             }
 
-            if (isGlobe) {
+            if (isMobile) {
                 $chartRender.current.animate({
                     key: 'zoomLevel',
                     to: zoomOut ? 1 : 2.5,
@@ -495,12 +495,12 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
 
             setIsZoomed(!zoomOut);
         },
-        [isGlobe, prevMarkerPosition, isAnimating]
+        [isMobile, prevMarkerPosition, isAnimating]
     );
 
     // enlarge points if map type is globe and map is zoomed
     useEffect(() => {
-        if (!isGlobe) return;
+        if (!isMobile) return;
         $pointSeries.current.bulletsContainer.children.each(bullet => {
             setTimeout(
                 () => {
@@ -521,21 +521,21 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
                 isZoomed ? 1000 : 0
             );
         });
-    }, [isZoomed, isGlobe]);
+    }, [isZoomed, isMobile]);
 
     // TODO: remove after mobile detection will be implemented
     useEffect(() => {
         if ($chartRender.current) {
             $chartRender.current.set(
                 'projection',
-                isGlobe ? am5map.geoOrthographic() : am5map.geoNaturalEarth1()
+                isMobile ? am5map.geoOrthographic() : am5map.geoNaturalEarth1()
             );
 
             if (isScrollLoaded) {
                 globeElementsAppear();
             }
         }
-    }, [isGlobe]);
+    }, [isMobile]);
 
     return (
         <div className={styles.flatMapWrapper} ref={$globeWrapper}>
@@ -558,9 +558,9 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
                 <button
                     className={styles.button}
                     type="button"
-                    onClick={() => setIsGlobe(!isGlobe)}
+                    onClick={() => setIsMobile(!isMobile)}
                 >
-                    Switch View
+                    {isMobile ? 'Switch to Desktop' : 'Switch to Mobile'}
                 </button>
             </section>
         </div>

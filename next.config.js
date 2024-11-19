@@ -1,5 +1,4 @@
 const modules = {
-    scrollRestoration: true,
     sassOptions: {
         additionalData: `@import "scss/_scoped";`,
         silenceDeprecations: ['legacy-js-api'],
