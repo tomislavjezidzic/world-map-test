@@ -268,6 +268,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
                 wheelY: 'none',
                 // TODO: change to am5map.geoOrthographic() on mobile
                 projection: am5map.geoNaturalEarth1(),
+                zoomLevel: isMobile ? 0.9 : 1,
                 minZoomLevel: 0.5,
                 maxZoomLevel: 16,
                 centerY: 0,
@@ -464,7 +465,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
             if (isMobile) {
                 $chartRender.current.animate({
                     key: 'zoomLevel',
-                    to: zoomOut ? 1 : 2.5,
+                    to: zoomOut ? (isMobile ? 0.9 : 1) : 2.5,
                     duration: 1500,
                     easing: am5.ease.out(am5.ease.cubic),
                 });
@@ -489,7 +490,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
                     setIsAnimating(false);
                 },
                 // 1400ms delay because rotate animation (1500) - animate method doesnt have on complete callback so we need to use this dirty solution
-                // 300ms delay for close animation to complete
+                // 10ms delay for close animation to start
                 zoomOut ? 10 : 1400
             );
 
