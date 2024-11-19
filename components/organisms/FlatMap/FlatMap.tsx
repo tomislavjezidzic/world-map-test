@@ -18,6 +18,8 @@ import { continentsAdditionalData } from '@organisms/FlatMap/data/continentsAddi
 
 import FlatMapDataTooltip from '@molecules/FlatMapDataTooltip';
 
+import clusterImg from '@public/images/cluster.png';
+
 if (typeof window !== 'undefined') {
     gsap.registerPlugin(useGSAP, ScrollToPlugin, ScrollTrigger);
 }
@@ -151,12 +153,12 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
             .then(csv =>
                 d3.csvParse(csv, ({ lat, lng, pop }) => {
                     // @ts-ignore
-                    if (pop > 20000) {
-                        return {
-                            lat: +lat,
-                            lng: +lng,
-                        };
-                    }
+                    // if (pop > 20000) {
+                    return {
+                        lat: +lat,
+                        lng: +lng,
+                    };
+                    // }
                 })
             )
             .then(data => {
@@ -190,9 +192,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
 
     const createMarkers = useCallback(root => {
         $markerSeries.current.bullets.push(root => {
-            const container = am5.Container.new(root, {
-                layer: 2,
-            });
+            const container = am5.Container.new(root, {});
             container.children.push(
                 am5.Picture.new(root, {
                     templateField: 'pictureSettings',
@@ -259,7 +259,14 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
     }, []);
 
     useEffect(() => {
+        if (citiesData.length < 1) return;
+
         const root = am5.Root.new($globe.current);
+
+        root.fps = 60;
+        root.autoResize = false;
+        root.tapToActivate = true;
+        root.tapToActivateTimeout = 5000;
 
         $chartRender.current = root.container.children.push(
             am5map.MapChart.new(root, {
@@ -355,28 +362,83 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
 
         infiniteRotation();
 
-        // create markers
-        $markerSeries.current = $chartRender.current.series.push(
-            am5map.MapPointSeries.new(root, {
-                geoJSON: continentsAdditionalData,
-            })
-        );
-
-        $markerSeries.current.set('visible', false);
-
-        createMarkers(root);
-
         // Create points (people signups)
         $pointSeries.current = $chartRender.current.series.push(
-            am5map.MapPointSeries.new(root, {
+            am5map.ClusteredPointSeries.new(root, {
+                minDistance: 5,
                 latitudeField: 'lat',
                 longitudeField: 'lng',
             })
         );
 
-        $pointSeries.current.set('visible', false);
+        $pointSeries.current.set('clusteredBullet', (mainRoot, clusterSeries, dataItem) => {
+            const container = am5.Container.new(root, {
+                cursorOverStyle: 'pointer',
+            });
 
-        $pointSeries.current.bullets.push(() => {
+            const circle1 = container.children.push(
+                am5.Rectangle.new(root, {
+                    width: 2,
+                    height: 2,
+                    fill: am5.color(0x3e5b64),
+                })
+            );
+
+            let size = 10 * Math.random();
+            const img = am5.Picture.new(root, {
+                centerX: size / 2,
+                centerY: size / 2,
+                width: size,
+                height: size,
+                rotation: 360 * Math.random(),
+                src: clusterImg.src,
+            });
+
+            setTimeout(() => {
+                const num = dataItem?._settings?.children?.length;
+                if (num > 10) {
+                    img.set('width', 32);
+                    img.set('height', 32);
+                } else if (num > 50) {
+                    img.set('width', 64);
+                    img.set('height', 64);
+                }
+                console.log(num);
+            }, 100);
+
+            const label = container.children.push(img);
+
+            return am5.Bullet.new(root, {
+                sprite: container,
+            });
+        });
+
+        $pointSeries.current.bullets.push((bullet: any, clusterSeries: any, dataItem: any) => {
+            // let size = 64 * Math.random();
+            // const img = am5.Picture.new(root, {
+            //     centerX: size / 2,
+            //     centerY: size / 2,
+            //     width: size,
+            //     height: size,
+            //     // rotation: 360 * Math.random(),
+            //     src: clusterImg.src,
+            // });
+            //
+            // console.log(2);
+            //
+            // setTimeout(() => {
+            //     const num = dataItem._settings?.cluster?._settings?.children?.length;
+            //     if (num) {
+            //         img.set('width', num);
+            //         img.set('height', num);
+            //     }
+            //     // console.log(num);
+            // }, 100);
+            //
+            // return am5.Bullet.new(root, {
+            //     sprite: img,
+            // });
+
             const rect = am5.Rectangle.new(root, {
                 width: 2,
                 height: 2,
@@ -388,9 +450,32 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
             });
         });
 
+        // $pointSeries.current.bullets.push(() => {
+        //     const rect = am5.Rectangle.new(root, {
+        //         width: 2,
+        //         height: 2,
+        //         fill: am5.color(0x3e5b64),
+        //     });
+        //
+        //     return am5.Bullet.new(root, {
+        //         sprite: rect,
+        //     });
+        // });
+
         $pointSeries.current.data.setAll(citiesData);
 
         continentsActiveEvent();
+
+        // create markers
+        $markerSeries.current = $chartRender.current.series.push(
+            am5map.MapPointSeries.new(root, {
+                geoJSON: continentsAdditionalData,
+            })
+        );
+
+        $markerSeries.current.set('visible', false);
+
+        createMarkers(root);
 
         return () => {
             root.dispose();
