@@ -190,9 +190,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
 
     const createMarkers = useCallback(root => {
         $markerSeries.current.bullets.push(root => {
-            const container = am5.Container.new(root, {
-                layer: 2,
-            });
+            const container = am5.Container.new(root, {});
             container.children.push(
                 am5.Picture.new(root, {
                     templateField: 'pictureSettings',
@@ -259,7 +257,14 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
     }, []);
 
     useEffect(() => {
+        if (citiesData.length < 1) return;
+
         const root = am5.Root.new($globe.current);
+
+        root.fps = 60;
+        root.autoResize = false;
+        root.tapToActivate = true;
+        root.tapToActivateTimeout = 5000;
 
         $chartRender.current = root.container.children.push(
             am5map.MapChart.new(root, {
@@ -355,17 +360,6 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
 
         infiniteRotation();
 
-        // create markers
-        $markerSeries.current = $chartRender.current.series.push(
-            am5map.MapPointSeries.new(root, {
-                geoJSON: continentsAdditionalData,
-            })
-        );
-
-        $markerSeries.current.set('visible', false);
-
-        createMarkers(root);
-
         // Create points (people signups)
         $pointSeries.current = $chartRender.current.series.push(
             am5map.MapPointSeries.new(root, {
@@ -391,6 +385,17 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
         $pointSeries.current.data.setAll(citiesData);
 
         continentsActiveEvent();
+
+        // create markers
+        $markerSeries.current = $chartRender.current.series.push(
+            am5map.MapPointSeries.new(root, {
+                geoJSON: continentsAdditionalData,
+            })
+        );
+
+        $markerSeries.current.set('visible', false);
+
+        createMarkers(root);
 
         return () => {
             root.dispose();
