@@ -491,7 +491,6 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
                             longitude: x,
                         })
                     );
-
                     setIsAnimating(false);
                 },
                 // 1400ms delay because rotate animation (1500) - animate method doesnt have on complete callback so we need to use this dirty solution
@@ -548,6 +547,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
             <section className={styles.flatMap}>
                 <FlatMapDataTooltip
                     isAnimating={isAnimating}
+                    setIsAnimating={setIsAnimating}
                     isActive={isZoomed}
                     rotateGlobe={rotateGlobe}
                     position={tooltipPosition}

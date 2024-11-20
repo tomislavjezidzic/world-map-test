@@ -6,6 +6,7 @@ import gsap from 'gsap';
 interface FlatMapDataTooltipProps {
     isActive: boolean;
     isAnimating: boolean;
+    setIsAnimating: (value: boolean) => void;
     rotateGlobe?: (lat: number, lng: number, zoom: boolean) => void;
     position?: { x: number; y: number };
     data?: {
@@ -20,6 +21,7 @@ interface FlatMapDataTooltipProps {
 
 const FlatMapDataTooltip = ({
     isAnimating = false,
+    setIsAnimating,
     isActive = false,
     rotateGlobe,
     position,
@@ -114,6 +116,8 @@ const FlatMapDataTooltip = ({
     const closeTooltip = useCallback(() => {
         if (!isOpened || isAnimating) return;
 
+        setIsAnimating(true);
+
         gsap.timeline({
             overwrite: true,
             onComplete: () => {
@@ -203,6 +207,7 @@ const FlatMapDataTooltip = ({
                 [styles.isActive]: isOpened,
             })}
             onClick={() => closeTooltip()}
+            style={{ pointerEvents: isAnimating ? 'none' : isActive ? 'auto' : 'none' }}
         >
             <div className={styles.main} ref={$main}>
                 <div className={styles.marker} ref={$marker}></div>
