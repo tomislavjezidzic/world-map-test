@@ -22,7 +22,7 @@
         "d3": "^7.9.0",
         "fs": "^0.0.1-security",
         "gsap": "file:gsap-bonus.tgz",
-        "next": "^15.0.2",
+        "next": "14.2.5",
         "path": "^0.12.7",
         "poly-fluid-sizing": "github:bornfight/poly-fluid-sizing",
         "react": "^18.3.1",
