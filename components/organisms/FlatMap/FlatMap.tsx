@@ -378,9 +378,9 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
 
             const circle1 = container.children.push(
                 am5.Rectangle.new(root, {
-                    width: 2,
-                    height: 2,
-                    fill: am5.color(0x3e5b64),
+                    width: 1,
+                    height: 1,
+                    fill: am5.color(0xffffff),
                 })
             );
 
@@ -440,9 +440,9 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
             // });
 
             const rect = am5.Rectangle.new(root, {
-                width: 2,
-                height: 2,
-                fill: am5.color(0x3e5b64),
+                width: 1,
+                height: 1,
+                fill: am5.color(0xffffff),
             });
 
             return am5.Bullet.new(root, {
@@ -634,12 +634,14 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
                     data={clickedContinentData}
                 />
 
-                <div
-                    ref={$globe}
-                    style={{
-                        pointerEvents: isAnimating ? 'none' : 'all',
-                    }}
-                ></div>
+                <div className={styles.globeWrapper}>
+                    <div
+                        ref={$globe}
+                        style={{
+                            pointerEvents: isAnimating ? 'none' : 'all',
+                        }}
+                    ></div>
+                </div>
 
                 <button
                     className={styles.button}

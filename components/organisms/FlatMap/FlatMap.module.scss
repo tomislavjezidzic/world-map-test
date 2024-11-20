@@ -12,7 +12,7 @@
     width: 80%;
     aspect-ratio: 2 / 1;
 
-    & > div {
+    div {
         position: absolute;
         left: 0;
         top: 0;
@@ -36,4 +36,10 @@
     position: absolute;
     left: 0;
     bottom: 0;
+}
+
+.globeWrapper {
+    //border: 1px solid red;
+    border-radius: 400px;
+    overflow: hidden;
 }
