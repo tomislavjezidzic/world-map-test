@@ -7,7 +7,6 @@ import am5geodata_continentsLow from '@amcharts/amcharts5-geodata/continentsLow'
 import am5geodata_worldOutlineLow from '@amcharts/amcharts5-geodata/worldOutlineLow';
 
 import * as am5map from '@amcharts/amcharts5/map';
-import * as d3 from 'd3';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 
 import gsap from 'gsap';
@@ -15,6 +14,8 @@ import { useGSAP } from '@gsap/react';
 import { ScrollToPlugin } from 'gsap/dist/ScrollToPlugin';
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
 import { continentsAdditionalData } from '@organisms/FlatMap/data/continentsAdditionalData';
+
+import userShareData from '@public/world_population.json';
 
 import FlatMapDataTooltip from '@molecules/FlatMapDataTooltip';
 
@@ -46,7 +47,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
     const [isMobile, setIsMobile] = useState(false);
     const [isAnimating, setIsAnimating] = useState(false);
     const [isScrollLoaded, setIsScrollLoaded] = useState(false);
-    const [citiesData, setCitiesData] = useState([]);
+    const [citiesData, setCitiesData] = useState(null);
     const [isZoomed, setIsZoomed] = useState(false);
     const [clickedContinentData, setClickedContinentData] = useState(null);
     const $globe = useRef(null);
@@ -146,46 +147,17 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
 
     // TODO: this should be people signups (population is used for mock data)
     useEffect(() => {
-        fetch('/world_population.csv')
-            .then(res => res.text())
-            .then(csv =>
-                d3.csvParse(csv, ({ lat, lng, pop }) => {
-                    // @ts-ignore
-                    if (pop > 20000) {
-                        return {
-                            lat: +lat,
-                            lng: +lng,
-                        };
-                    }
-                })
-            )
-            .then(data => {
-                const filteredData = [];
+        const filteredData = [];
 
-                for (let i = 0; i < data.length; i++) {
-                    const point = data[i];
-                    let keepPoint = true;
+        for (let i = 0; i < userShareData.length; i++) {
+            const point = userShareData[i];
 
-                    for (let j = 0; j < data.length; j++) {
-                        if (i !== j) {
-                            const otherPoint = data[j];
-                            const latDiff = Math.abs(point.lat - otherPoint.lat);
-                            const lngDiff = Math.abs(point.lng - otherPoint.lng);
+            if (i % 3 === 0) {
+                filteredData.push(point);
+            }
+        }
 
-                            if (latDiff < 0.35 && lngDiff < 0.35) {
-                                keepPoint = false;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (keepPoint) {
-                        filteredData.push(point);
-                    }
-                }
-
-                setCitiesData(filteredData);
-            });
+        setCitiesData(filteredData);
     }, []);
 
     const createMarkers = useCallback(root => {
@@ -257,7 +229,9 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
     }, []);
 
     useEffect(() => {
-        if (citiesData.length < 1) return;
+        if (!citiesData || citiesData?.length < 1) return;
+
+        console.log(citiesData?.length);
 
         const root = am5.Root.new($globe.current);
 
