@@ -1,26 +1,22 @@
-import styles from './Kepler.module.scss';
-import KeplerGl from '@kepler.gl/components';
+import React from 'react';
+import KeplerGl from 'kepler.gl';
 import { ReactReduxContext } from 'react-redux';
 
-interface KeplerProps {}
-
-const Kepler = ({}: KeplerProps) => {
+const Kepler = () => {
     return (
-        <div className={styles.main}>
-            <ReactReduxContext.Consumer>
-                {({ store }) => (
-                    <KeplerGl
-                        id="map"
-                        width={window.innerWidth}
-                        mapboxApiAccessToken={
-                            'pk.eyJ1IjoiaXRzdG9tbyIsImEiOiJjbTNwcHNkbnQwaTZoMmlxdHV3ZXMwZ2Z3In0.-Imy9Bt3moYYSOgr2VSHpw'
-                        }
-                        height={window.innerHeight}
-                        store={store}
-                    />
-                )}
-            </ReactReduxContext.Consumer>
-        </div>
+        <ReactReduxContext.Consumer>
+            {({ store }) => (
+                <KeplerGl
+                    id="map"
+                    width={window.innerWidth}
+                    mapboxApiAccessToken={
+                        'pk.eyJ1IjoiaXRzdG9tbyIsImEiOiJjbTNwcHNkbnQwaTZoMmlxdHV3ZXMwZ2Z3In0.-Imy9Bt3moYYSOgr2VSHpw'
+                    }
+                    height={window.innerHeight}
+                    store={store}
+                />
+            )}
+        </ReactReduxContext.Consumer>
     );
 };
 

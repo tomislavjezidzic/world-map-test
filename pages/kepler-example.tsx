@@ -27,9 +27,11 @@ const KeplerExamplePage = ({}: KeplerExampleProps) => {
                 <Image src={aboveMapImage} alt="above" />
             </div>
 
-            <ReduxProvider store={store}>
-                <DynamicMap />
-            </ReduxProvider>
+            <div>
+                <ReduxProvider store={store}>
+                    <DynamicMap />
+                </ReduxProvider>
+            </div>
 
             <div>
                 <Image src={belowMapImage} alt="below" />
