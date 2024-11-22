@@ -5,7 +5,35 @@ import locationsData from '@public/share_my_GPS_timeline_since_may_2024-reduced.
 
 import globeTexture from '@public/images/world.jpg';
 
+import { GeoJsonGeometry } from 'three-geojson-geometry';
+
+import continentData from './data/continents.json';
+
+import * as d3 from 'd3';
+
 interface ThreeJSProps {}
+
+/*
+const canvasW = 1024;
+const canvasH = 512;
+
+function getPXfromLatLng(lat, lon) {
+    // Convert longitude to [0,1] range, then multiply by canvas width
+    let posX = (lon + 180) / 360 * canvasW;
+
+
+    // Convert lat to [0,1] range, then multiply by canvas height
+    let posY = (lat + 90) / 180 * canvasH;
+
+    return { x: posX, y: posY };
+}
+
+function getPXfromLatLng(lat, lon) {
+        let posX = ((lat + 180.0) * (canvasW / 360.0));
+        let posY = (((lon * -1.0) + 90.0) * (canvasH / 180.0));
+        return { x: posX, y: posY };
+}
+ */
 
 const ThreeJS = ({}: ThreeJSProps) => {
     const $globeRef = useRef<HTMLDivElement>(null);
@@ -84,7 +112,7 @@ const ThreeJS = ({}: ThreeJSProps) => {
         $points.current = new THREE.Mesh(
             $baseGeometry.current,
             new THREE.MeshBasicMaterial({
-                color: new THREE.Color(0x3fdbed),
+                color: new THREE.Color(0x3FDBBA),
                 side: THREE.BackSide,
             })
         );
@@ -174,6 +202,30 @@ const ThreeJS = ({}: ThreeJSProps) => {
         $renderer.current.setSize($globeRef.current.offsetWidth, $globeRef.current.offsetHeight);
     }, []);
 
+    const createContinents = useCallback(() => {
+        const lineObjs = [
+            new THREE.LineSegments(
+                new GeoJsonGeometry(d3.geoGraticule10(), 199.5),
+                new THREE.LineBasicMaterial({ color: 0x575654 })
+            ),
+        ];
+
+        const material = new THREE.LineBasicMaterial({ color: 0x3fdbed });
+
+        continentData.features.forEach((feature: any) => {
+            const continent = new THREE.LineSegments(
+                new GeoJsonGeometry(feature.geometry, 201),
+                material
+            );
+
+            continent.rotation.y = -Math.PI / 2;
+
+            lineObjs.push(continent);
+        });
+
+        lineObjs.forEach(obj => $scene.current.add(obj));
+    }, []);
+
     const Globe = useCallback(() => {
         const w = $globeRef.current.offsetWidth || window.innerWidth;
         const h = $globeRef.current.offsetHeight || window.innerHeight;
@@ -183,11 +235,11 @@ const ThreeJS = ({}: ThreeJSProps) => {
 
         $scene.current = new THREE.Scene();
 
-        const geometry = new THREE.SphereGeometry(200, 40, 30);
+        const geometry = new THREE.SphereGeometry(199, 40, 30);
 
         const material = new THREE.MeshBasicMaterial({
-            color: 0xffffff,
-            map: new THREE.TextureLoader().load(globeTexture.src),
+            color: 0x1b1b1b,
+            // map: new THREE.TextureLoader().load(globeTexture.src),
             // transparent: true,
             // opacity: 0,
         });
@@ -223,6 +275,8 @@ const ThreeJS = ({}: ThreeJSProps) => {
             },
             false
         );
+
+        createContinents();
     }, [$point, $scene]);
 
     useEffect(() => {
