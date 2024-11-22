@@ -54,6 +54,8 @@ const ThreeJS = ({}: ThreeJSProps) => {
     const $mouse = useRef({ x: 0, y: 0 });
     const $mouseOnDown = useRef({ x: 0, y: 0 });
     const $PI_HALF = useRef(Math.PI / 2);
+    const $raycaster = useRef(new THREE.Raycaster());
+    const $pointer = useRef(new THREE.Vector2());
 
     const animate = useCallback(() => {
         requestAnimationFrame(animate);
@@ -112,7 +114,7 @@ const ThreeJS = ({}: ThreeJSProps) => {
         $points.current = new THREE.Mesh(
             $baseGeometry.current,
             new THREE.MeshBasicMaterial({
-                color: new THREE.Color(0x3FDBBA),
+                color: new THREE.Color(0x3fdbba),
                 side: THREE.BackSide,
             })
         );
@@ -218,12 +220,26 @@ const ThreeJS = ({}: ThreeJSProps) => {
                 material
             );
 
+            continent.name = feature.id;
             continent.rotation.y = -Math.PI / 2;
 
             lineObjs.push(continent);
         });
 
         lineObjs.forEach(obj => $scene.current.add(obj));
+    }, []);
+
+    const detectClick = useCallback(ev => {
+        $pointer.current.x = (ev.clientX / $globeRef.current.offsetWidth) * 2 - 1;
+        $pointer.current.y = -(ev.clientY / $globeRef.current.offsetHeight) * 2 + 1;
+
+        $raycaster.current.setFromCamera($pointer.current, $camera.current);
+        const intersects = $raycaster.current.intersectObjects($scene.current.children);
+
+        for (let i = 0; i < intersects.length; i++) {
+            // intersects[i].object.material.color.set(0xff0000);
+            console.log(intersects[i].object.name);
+        }
     }, []);
 
     const Globe = useCallback(() => {
@@ -239,9 +255,6 @@ const ThreeJS = ({}: ThreeJSProps) => {
 
         const material = new THREE.MeshBasicMaterial({
             color: 0x1b1b1b,
-            // map: new THREE.TextureLoader().load(globeTexture.src),
-            // transparent: true,
-            // opacity: 0,
         });
 
         $mesh.current = new THREE.Mesh(geometry, material);
@@ -299,7 +312,7 @@ const ThreeJS = ({}: ThreeJSProps) => {
 
     return (
         <div>
-            <div ref={$globeRef}></div>
+            <div ref={$globeRef} onClick={ev => detectClick(ev)}></div>
         </div>
     );
 };
