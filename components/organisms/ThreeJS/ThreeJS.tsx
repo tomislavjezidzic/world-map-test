@@ -33,7 +33,7 @@ const ThreeJS = ({}: ThreeJSProps) => {
     }, [$camera?.current, $scene.current]);
 
     const addPoint = useCallback(
-        (lat, lng, subGeo) => {
+        (lat: number, lng: number, subGeo: any) => {
             if (!$point?.current) return;
 
             const phi = ((90 - lat) * Math.PI) / 180;
@@ -57,8 +57,8 @@ const ThreeJS = ({}: ThreeJSProps) => {
         [$point.current]
     );
 
-    const addData = useCallback(data => {
-        const addDataLoop = index => {
+    const addData = useCallback((data: string | any[]) => {
+        const addDataLoop = (index: number) => {
             if (index >= data.length) {
                 return;
             }
@@ -84,7 +84,7 @@ const ThreeJS = ({}: ThreeJSProps) => {
         $points.current = new THREE.Mesh(
             $baseGeometry.current,
             new THREE.MeshBasicMaterial({
-                color: new THREE.Color(0x3FDBED),
+                color: new THREE.Color(0x3fdbed),
                 side: THREE.BackSide,
             })
         );
@@ -92,7 +92,7 @@ const ThreeJS = ({}: ThreeJSProps) => {
         $scene.current.add($points.current);
     }, [$baseGeometry.current]);
 
-    const zoom = useCallback(delta => {
+    const zoom = useCallback((delta: number) => {
         $distanceTarget.current -= delta;
         $distanceTarget.current = $distanceTarget.current > 1100 ? 1100 : $distanceTarget.current;
         $distanceTarget.current = $distanceTarget.current < 350 ? 350 : $distanceTarget.current;
@@ -119,7 +119,7 @@ const ThreeJS = ({}: ThreeJSProps) => {
         $renderer.current.render($scene.current, $camera.current);
     }, [$camera.current, $scene.current]);
 
-    const onMouseDown = useCallback(event => {
+    const onMouseDown = useCallback((event: any) => {
         event.preventDefault();
 
         $globeRef.current.addEventListener('mousemove', onMouseMove, false);
@@ -135,7 +135,7 @@ const ThreeJS = ({}: ThreeJSProps) => {
         $globeRef.current.style.cursor = 'move';
     }, []);
 
-    const onMouseMove = useCallback(event => {
+    const onMouseMove = useCallback((event: any) => {
         $mouse.current.x = -event.clientX;
         $mouse.current.y = event.clientY;
 
@@ -155,24 +155,24 @@ const ThreeJS = ({}: ThreeJSProps) => {
             $target.current.x > $PI_HALF.current ? $PI_HALF.current : $target.current.x;
     }, []);
 
-    const onMouseUp = useCallback(event => {
+    const onMouseUp = useCallback(() => {
         $globeRef.current.removeEventListener('mousemove', onMouseMove, false);
         $globeRef.current.removeEventListener('mouseup', onMouseUp, false);
         $globeRef.current.removeEventListener('mouseout', onMouseOut, false);
         $globeRef.current.style.cursor = 'auto';
     }, []);
 
-    const onMouseOut = useCallback(event => {
+    const onMouseOut = useCallback(() => {
         $globeRef.current.removeEventListener('mousemove', onMouseMove, false);
         $globeRef.current.removeEventListener('mouseup', onMouseUp, false);
         $globeRef.current.removeEventListener('mouseout', onMouseOut, false);
     }, []);
 
-    function onWindowResize(event) {
+    const onWindowResize = useCallback(() => {
         $camera.current.aspect = $globeRef.current.offsetWidth / $globeRef.current.offsetHeight;
         $camera.current.updateProjectionMatrix();
         $renderer.current.setSize($globeRef.current.offsetWidth, $globeRef.current.offsetHeight);
-    }
+    }, []);
 
     const Globe = useCallback(() => {
         const w = $globeRef.current.offsetWidth || window.innerWidth;
@@ -184,8 +184,6 @@ const ThreeJS = ({}: ThreeJSProps) => {
         $scene.current = new THREE.Scene();
 
         const geometry = new THREE.SphereGeometry(200, 40, 30);
-
-        THREE.ImageUtils.crossOrigin = '';
 
         const material = new THREE.MeshBasicMaterial({
             color: 0xffffff,
