@@ -46,6 +46,13 @@ const Navigation = ({}: NavigationProps) => {
                                     >
                                         <Link href="/kepler-example">Kepler Example</Link>
                                     </li>
+                                    <li
+                                        className={cn(styles.navigationItem, {
+                                            [styles.isActive]: pathname === '/threejs-example',
+                                        })}
+                                    >
+                                        <Link href="/threejs-example">ThreeJS Example</Link>
+                                    </li>
                                 </ul>
                             </nav>
                         </div>
