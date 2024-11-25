@@ -1,4 +1,5 @@
 const modules = {
+    transpilePackages: ['three'],
     sassOptions: {
         additionalData: `@import "scss/_scoped";`,
         silenceDeprecations: ['legacy-js-api'],
