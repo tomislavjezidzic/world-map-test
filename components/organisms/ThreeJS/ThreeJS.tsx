@@ -382,7 +382,7 @@ const ThreeJS = ({}: ThreeJSProps) => {
                     if (feature.pointCoordinates) {
                         return (
                             <div key={i} className={styles.marker} id={`${feature.id}-marker`}>
-                                <ThreeJSMapDataTooltip />
+                                <ThreeJSMapDataTooltip isActive={true} />
                             </div>
                         );
                     }
