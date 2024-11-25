@@ -185,15 +185,21 @@ const ThreeJS = ({}: ThreeJSProps) => {
         const lineObjs = [
             new THREE.LineSegments(
                 new GeoJsonGeometry(d3.geoGraticule10(), 199.5),
-                new THREE.LineBasicMaterial({ color: 0x575654 })
+                new THREE.LineBasicMaterial({
+                    color: 0x575654,
+                    side: THREE.BackSide,
+                })
             ),
         ];
 
-        const material = new THREE.LineBasicMaterial({ color: 0x3fdbed });
+        const material = new THREE.LineBasicMaterial({
+            color: 0x3fdbed,
+            side: THREE.BackSide,
+        });
 
         continentData.features.forEach((feature: any) => {
             const continent = new THREE.LineSegments(
-                new GeoJsonGeometry(feature.geometry, 201),
+                new GeoJsonGeometry(feature.geometry, 199),
                 material
             );
 
