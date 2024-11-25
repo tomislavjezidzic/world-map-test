@@ -1,5 +1,5 @@
 import styles from './ThreeJS.module.scss';
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import locationsData from '@public/share_my_GPS_timeline_since_may_2024-reduced.json';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
@@ -43,13 +43,37 @@ const ThreeJS = ({}: ThreeJSProps) => {
     const $camera = useRef(null);
     const $renderer = useRef(null);
     const $mesh = useRef(null);
-    const $curZoomSpeed = useRef(0);
-    const $distanceTarget = useRef(100000);
-    const $distance = useRef(1000000);
-    const $rotation = useRef({ x: 0, y: 0 });
-    const $target = useRef({ x: (Math.PI * 3) / 2, y: Math.PI / 6.0 });
     const $raycaster = useRef(new THREE.Raycaster());
     const $pointer = useRef(new THREE.Vector2());
+
+    // useEffect(() => {
+    //     setTimeout(() => {
+    //         const filteredData = [];
+    //
+    //         for (let i = 0; i < locationsData.length; i++) {
+    //             const point = locationsData[i];
+    //             let keepPoint = true;
+    //
+    //             for (let j = 0; j < locationsData.length; j++) {
+    //                 if (i !== j) {
+    //                     const otherPoint = locationsData[j];
+    //                     const latDiff = Math.abs(point.lat - otherPoint.lat);
+    //                     const lngDiff = Math.abs(point.lng - otherPoint.lng);
+    //
+    //                     if (latDiff < 0.05 && lngDiff < 0.05) {
+    //                         keepPoint = false;
+    //                         break;
+    //                     }
+    //                 }
+    //             }
+    //
+    //             if (keepPoint) {
+    //                 filteredData.push(point);
+    //             }
+    //         }
+    //         console.log(filteredData);
+    //     }, 1000);
+    // }, []);
 
     const animate = useCallback(() => {
         requestAnimationFrame(animate);
@@ -119,9 +143,6 @@ const ThreeJS = ({}: ThreeJSProps) => {
 
     const render = useCallback(() => {
         if (!$camera?.current) return;
-
-        $distance.current += ($distanceTarget.current - $distance.current) * 0.8;
-
         $camera.current.lookAt($mesh.current.position);
 
         $renderer.current.render($scene.current, $camera.current);
@@ -198,6 +219,9 @@ const ThreeJS = ({}: ThreeJSProps) => {
             alpha: true,
             antialias: true,
         });
+
+        $renderer.current.setPixelRatio(1.5);
+
         $renderer.current.setSize(w, h);
 
         $globeRef.current.appendChild($renderer.current.domElement);
@@ -207,12 +231,11 @@ const ThreeJS = ({}: ThreeJSProps) => {
         $controls.current = new OrbitControls($camera.current, $renderer.current.domElement);
         $controls.current.update();
         $controls.current.enableDamping = true;
+        $controls.current.autoRotate = true;
         $controls.current.enableZoom = false;
         $controls.current.enablePan = false;
         $controls.current.dampingFactor = 0.05;
         $controls.current.screenSpacePanning = false;
-
-        console.log(1);
 
         createContinents();
     }, []);
