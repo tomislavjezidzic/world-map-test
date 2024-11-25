@@ -5,12 +5,16 @@ import locationsData from '@public/share_my_GPS_timeline_since_may_2024-reduced.
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GeoJsonGeometry } from 'three-geojson-geometry';
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
+import markerImg from '@public/images/marker.svg';
+import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer';
 
 import gsap from 'gsap';
 import continentData from './data/continents.json';
 
 import * as d3 from 'd3';
 import { useGSAP } from '@gsap/react';
+import cn from 'classnames';
+import ThreeJSMapDataTooltip from '@molecules/ThreeJSMapDataTooltip';
 
 if (typeof window !== 'undefined') {
     gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -48,9 +52,11 @@ const ThreeJS = ({}: ThreeJSProps) => {
     const $controls = useRef(null);
     const $camera = useRef(null);
     const $renderer = useRef(null);
+    const $labelRenderer = useRef(null);
     const $mesh = useRef(null);
     const $raycaster = useRef(new THREE.Raycaster());
     const $pointer = useRef(new THREE.Vector2());
+    const $labels = useRef([]);
 
     // useEffect(() => {
     //     setTimeout(() => {
@@ -107,25 +113,31 @@ const ThreeJS = ({}: ThreeJSProps) => {
         render();
     }, [$camera?.current, $scene.current, $controls.current]);
 
+    const getCoordinates = useCallback((lat: number, lng: number) => {
+        const phi = ((90 - lat) * Math.PI) / 180;
+        const theta = ((180 - lng) * Math.PI) / 180;
+
+        return {
+            x: 200 * Math.sin(phi) * Math.cos(theta),
+            y: 200 * Math.cos(phi),
+            z: 200 * Math.sin(phi) * Math.sin(theta),
+        };
+    }, []);
+
     const addPoint = useCallback(
         (lat: number, lng: number, subGeo: any) => {
             if (!$point?.current) return;
 
-            const phi = ((90 - lat) * Math.PI) / 180;
-            const theta = ((180 - lng) * Math.PI) / 180;
+            const { x, y, z } = getCoordinates(lat, lng);
 
-            $point.current.position.x = 200 * Math.sin(phi) * Math.cos(theta);
-            $point.current.position.y = 200 * Math.cos(phi);
-            $point.current.position.z = 200 * Math.sin(phi) * Math.sin(theta);
+            $point.current.position.x = x;
+            $point.current.position.y = y;
+            $point.current.position.z = z;
 
             $point.current.lookAt($mesh.current.position);
 
             $point.current.scale.z = 0.1;
             $point.current.updateMatrix();
-
-            // if ($point.current.matrixAutoUpdate) {
-            //     $point.current.updateMatrix();
-            // }
 
             subGeo.merge($point.current.geometry, $point.current.matrix);
         },
@@ -172,13 +184,36 @@ const ThreeJS = ({}: ThreeJSProps) => {
         if (!$camera?.current) return;
         $camera.current.lookAt($mesh.current.position);
 
+        $labels.current.forEach(label => {
+            label.getWorldPosition($raycaster.current.ray.origin);
+
+            const rd = $camera.current.position
+                .clone()
+                .sub($raycaster.current.ray.origin)
+                .normalize();
+            $raycaster.current.ray.direction.set(rd.x, rd.y, rd.z);
+
+            const hits = $raycaster.current.intersectObjects([$mesh.current]);
+
+            if (hits.length > 0 && !label.element.classList.contains('is-hidden')) {
+                label.element.classList.add('is-hidden');
+            } else if (hits.length == 0 && label.element.classList.contains('is-hidden')) {
+                label.element.classList.remove('is-hidden');
+            }
+        });
+
         $renderer.current.render($scene.current, $camera.current);
+        $labelRenderer.current.render($scene.current, $camera.current);
     }, [$camera.current, $scene.current]);
 
     const onWindowResize = useCallback(() => {
         $camera.current.aspect = $globeRef.current.offsetWidth / $globeRef.current.offsetHeight;
         $camera.current.updateProjectionMatrix();
         $renderer.current.setSize($globeRef.current.offsetWidth, $globeRef.current.offsetHeight);
+        $labelRenderer.current.setSize(
+            $globeRef.current.offsetWidth,
+            $globeRef.current.offsetHeight
+        );
     }, []);
 
     const createContinents = useCallback(() => {
@@ -207,22 +242,51 @@ const ThreeJS = ({}: ThreeJSProps) => {
             continent.rotation.y = -Math.PI / 2;
 
             lineObjs.push(continent);
+
+            if (feature.pointCoordinates) {
+                const { x, y, z } = getCoordinates(
+                    feature.pointCoordinates[1],
+                    feature.pointCoordinates[0]
+                );
+
+                // const marker = new THREE.Mesh(
+                //     new THREE.PlaneGeometry(12, 12),
+                //     new THREE.MeshBasicMaterial({
+                //         side: THREE.BackSide,
+                //         map: new THREE.TextureLoader().load(markerImg.src),
+                //     })
+                // );
+                // marker.name = feature.id + '-marker';
+                // marker.position.set(x, y, z);
+                // marker.lookAt(0, 0, 0);
+                // $scene.current.add(marker);
+
+                let labelDiv = document.getElementById(feature.id + '-marker');
+                let label = new CSS2DObject(labelDiv);
+
+                label.position.set(x, y, z);
+
+                $labels.current.push(label);
+
+                $scene.current.add(label);
+            }
         });
 
         lineObjs.forEach(obj => $scene.current.add(obj));
     }, []);
 
     const detectClick = useCallback(ev => {
-        $pointer.current.x = (ev.clientX / $globeRef.current.offsetWidth) * 2 - 1;
-        $pointer.current.y = -(ev.clientY / $globeRef.current.offsetHeight) * 2 + 1;
-
-        $raycaster.current.setFromCamera($pointer.current, $camera.current);
-        const intersects = $raycaster.current.intersectObjects($scene.current.children);
-
-        for (let i = 0; i < intersects.length; i++) {
-            // intersects[i].object.material.color.set(0xff0000);
-            console.log(intersects[i].object.name);
-        }
+        // const topOffset = $globeRef.current.getBoundingClientRect().top;
+        // $pointer.current.x = (ev.clientX / $globeRef.current.offsetWidth) * 2 - 1;
+        // $pointer.current.y = -((ev.clientY - topOffset) / $globeRef.current.offsetHeight) * 2 + 1;
+        //
+        // $raycaster.current.setFromCamera($pointer.current, $camera.current);
+        // const intersects = $raycaster.current.intersectObjects($scene.current.children);
+        //
+        // for (let i = 0; i < intersects.length; i++) {
+        //     // intersects[i].object.material.color.set(0xff0000);
+        //     console.log(1, intersects[i].object.name);
+        // }
     }, []);
 
     const Globe = useCallback(() => {
@@ -259,18 +323,28 @@ const ThreeJS = ({}: ThreeJSProps) => {
 
         $globeRef.current.appendChild($renderer.current.domElement);
 
-        window.addEventListener('resize', onWindowResize, false);
+        $labelRenderer.current = new CSS2DRenderer();
+        $labelRenderer.current.setSize(window.innerWidth, window.innerHeight);
+        $labelRenderer.current.domElement.style.position = 'absolute';
+        $labelRenderer.current.domElement.style.top = '0px';
+        $labelRenderer.current.domElement.style.left = '0px';
+        $labelRenderer.current.domElement.style.width = '100%';
+        $labelRenderer.current.domElement.style.height = '100%';
+        $globeRef.current.appendChild($labelRenderer.current.domElement);
 
-        $controls.current = new OrbitControls($camera.current, $renderer.current.domElement);
+        $controls.current = new OrbitControls($camera.current, $labelRenderer.current.domElement);
         $controls.current.update();
         $controls.current.enableDamping = true;
         $controls.current.autoRotate = true;
+        $controls.current.autoRotateSpeed = 0.3;
         $controls.current.enableZoom = false;
         $controls.current.enablePan = false;
         $controls.current.dampingFactor = 0.05;
         $controls.current.screenSpacePanning = false;
 
         createContinents();
+
+        window.addEventListener('resize', onWindowResize, false);
 
         return () => {
             window.removeEventListener('resize', onWindowResize, false);
@@ -300,8 +374,20 @@ const ThreeJS = ({}: ThreeJSProps) => {
     }, []);
 
     return (
-        <div>
+        <div className={styles.main}>
             <div ref={$globeRef} onClick={ev => detectClick(ev)}></div>
+
+            <div className={styles.markers}>
+                {continentData.features.map((feature, i) => {
+                    if (feature.pointCoordinates) {
+                        return (
+                            <div key={i} className={styles.marker} id={`${feature.id}-marker`}>
+                                <ThreeJSMapDataTooltip />
+                            </div>
+                        );
+                    }
+                })}
+            </div>
         </div>
     );
 };
