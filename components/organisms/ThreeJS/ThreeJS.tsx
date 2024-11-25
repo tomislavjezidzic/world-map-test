@@ -225,7 +225,7 @@ const ThreeJS = ({}: ThreeJSProps) => {
 
         $camera.current = new THREE.PerspectiveCamera(30, w / h, 1, 10000);
         $camera.current.position.z = 1100;
-        $camera.current.position.y = 500;
+        $camera.current.position.y = 200;
 
         $scene.current = new THREE.Scene();
 
