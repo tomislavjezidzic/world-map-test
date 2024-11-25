@@ -41,13 +41,6 @@ const Navigation = ({}: NavigationProps) => {
                                     </li>
                                     <li
                                         className={cn(styles.navigationItem, {
-                                            [styles.isActive]: pathname === '/kepler-example',
-                                        })}
-                                    >
-                                        <Link href="/kepler-example">Kepler Example</Link>
-                                    </li>
-                                    <li
-                                        className={cn(styles.navigationItem, {
                                             [styles.isActive]: pathname === '/threejs-example',
                                         })}
                                     >
