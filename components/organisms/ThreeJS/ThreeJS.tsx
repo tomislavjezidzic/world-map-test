@@ -259,7 +259,7 @@ const ThreeJS = ({}: ThreeJSProps) => {
 
         $globeRef.current.appendChild($renderer.current.domElement);
 
-        // window.addEventListener("resize", onWindowResize, false);
+        window.addEventListener('resize', onWindowResize, false);
 
         $controls.current = new OrbitControls($camera.current, $renderer.current.domElement);
         $controls.current.update();
@@ -271,6 +271,10 @@ const ThreeJS = ({}: ThreeJSProps) => {
         $controls.current.screenSpacePanning = false;
 
         createContinents();
+
+        return () => {
+            window.removeEventListener('resize', onWindowResize, false);
+        };
     }, []);
 
     useEffect(() => {
