@@ -1,13 +1,20 @@
 import styles from './ThreeJS.module.scss';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import locationsData from '@public/share_my_GPS_timeline_since_may_2024-reduced.json';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GeoJsonGeometry } from 'three-geojson-geometry';
+import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
 
+import gsap from 'gsap';
 import continentData from './data/continents.json';
 
 import * as d3 from 'd3';
+import { useGSAP } from '@gsap/react';
+
+if (typeof window !== 'undefined') {
+    gsap.registerPlugin(ScrollTrigger, useGSAP);
+}
 
 interface ThreeJSProps {}
 
@@ -35,10 +42,9 @@ function getPXfromLatLng(lat, lon) {
 
 const ThreeJS = ({}: ThreeJSProps) => {
     const $globeRef = useRef<HTMLDivElement>(null);
-    const $baseGeometry = useRef(null);
     const $point = useRef(null);
-    const $points = useRef(null);
     const $scene = useRef(null);
+    const $pointGroups = useRef([]);
     const $controls = useRef(null);
     const $camera = useRef(null);
     const $renderer = useRef(null);
@@ -75,6 +81,26 @@ const ThreeJS = ({}: ThreeJSProps) => {
     //     }, 1000);
     // }, []);
 
+    useGSAP(() => {
+        if ($globeRef.current) {
+            ScrollTrigger.create({
+                trigger: $globeRef.current,
+                start: 'top center',
+                end: 'bottom center',
+                onEnter: () => {
+                    $pointGroups.current.forEach((group, index) => {
+                        gsap.to(group.material, {
+                            opacity: 1,
+                            ease: 'none',
+                            duration: 1,
+                            delay: 0.7 * index,
+                        });
+                    });
+                },
+            });
+        }
+    }, [$globeRef.current, $pointGroups.current]);
+
     const animate = useCallback(() => {
         requestAnimationFrame(animate);
         $controls.current.update();
@@ -97,9 +123,9 @@ const ThreeJS = ({}: ThreeJSProps) => {
             $point.current.scale.z = 0.1;
             $point.current.updateMatrix();
 
-            if ($point.current.matrixAutoUpdate) {
-                $point.current.updateMatrix();
-            }
+            // if ($point.current.matrixAutoUpdate) {
+            //     $point.current.updateMatrix();
+            // }
 
             subGeo.merge($point.current.geometry, $point.current.matrix);
         },
@@ -112,34 +138,35 @@ const ThreeJS = ({}: ThreeJSProps) => {
                 return;
             }
             const subGeo = new THREE.Geometry();
-
-            for (let i = 0; i < data.length; i++) {
-                const lat = data[i].lat;
-                const lng = data[i].lng;
+            for (let i = 0; i < data[index].length; i++) {
+                const lat = data[index][i].lat;
+                const lng = data[index][i].lng;
                 addPoint(lat, lng, subGeo);
             }
 
-            if (!$baseGeometry.current) {
-                $baseGeometry.current = subGeo;
-            }
+            index++;
+            addDataLoop(index);
+            createPoints(subGeo);
         };
 
         addDataLoop(0);
-        createPoints();
     }, []);
 
-    const createPoints = useCallback(() => {
+    const createPoints = useCallback(subGeo => {
         if (!$scene?.current) return;
-        $points.current = new THREE.Mesh(
-            $baseGeometry.current,
+        const points = new THREE.Mesh(
+            subGeo,
             new THREE.MeshBasicMaterial({
                 color: new THREE.Color(0x3fdbba),
                 side: THREE.BackSide,
+                transparent: true,
+                opacity: 0,
             })
         );
 
-        $scene.current.add($points.current);
-    }, [$baseGeometry.current]);
+        $pointGroups.current.push(points);
+        $scene.current.add(points);
+    }, []);
 
     const render = useCallback(() => {
         if (!$camera?.current) return;
@@ -251,14 +278,14 @@ const ThreeJS = ({}: ThreeJSProps) => {
 
         Globe();
 
-        const batchSize = 10000;
+        const batchSize = 2000;
 
         const splitData = [];
         for (let i = 0; i < locationsData.length; i += batchSize) {
             splitData.push(locationsData.slice(i, i + batchSize));
         }
 
-        addData(locationsData);
+        addData(splitData);
         animate();
     }, []);
 
