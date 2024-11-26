@@ -280,6 +280,7 @@ const ThreeJS = ({ continentsData }: ThreeJSProps) => {
         (coordinates: number[], index: number | null) => {
             const lat = coordinates[0] * (Math.PI / 180);
             let lng = 0;
+            let delay = 0;
 
             if (
                 (activePoint === index && index != null) ||
@@ -287,10 +288,12 @@ const ThreeJS = ({ continentsData }: ThreeJSProps) => {
             ) {
                 setActivePoint(null);
                 $controls.current.autoRotate = true;
+                console.log(1);
             } else if (index != null) {
                 lng = coordinates[1] * (Math.PI / 180);
                 setActivePoint(index);
                 $controls.current.autoRotate = false;
+                activePoint ? (delay = 0.5) : (delay = 0);
             } else {
                 return;
             }
@@ -312,6 +315,7 @@ const ThreeJS = ({ continentsData }: ThreeJSProps) => {
                     minPolarAngle: Math.PI / 2 - lng,
                     maxPolarAngle: Math.PI / 2 - lng,
                     duration: 1,
+                    delay: delay,
                     onComplete: () => {
                         $controls.current.minAzimuthAngle = -Infinity;
                         $controls.current.maxAzimuthAngle = Infinity;
