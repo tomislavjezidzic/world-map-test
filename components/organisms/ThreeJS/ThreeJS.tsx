@@ -1,5 +1,5 @@
 import styles from './ThreeJS.module.scss';
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import locationsData from '@public/share_my_GPS_timeline_since_may_2024-reduced.json';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
@@ -20,7 +20,16 @@ if (typeof window !== 'undefined') {
     gsap.registerPlugin(ScrollTrigger, useGSAP);
 }
 
-interface ThreeJSProps {}
+interface ThreeJSProps {
+    continentsData: {
+        id: string;
+        countries: string[];
+        humans: string;
+        users: string;
+        transactions: string;
+        orbs: string;
+    }[];
+}
 
 /*
 const canvasW = 1024;
@@ -44,7 +53,7 @@ function getPXfromLatLng(lat, lon) {
 }
  */
 
-const ThreeJS = ({}: ThreeJSProps) => {
+const ThreeJS = ({ continentsData }: ThreeJSProps) => {
     const $globeRef = useRef<HTMLDivElement>(null);
     const $point = useRef(null);
     const $scene = useRef(null);
@@ -55,8 +64,9 @@ const ThreeJS = ({}: ThreeJSProps) => {
     const $labelRenderer = useRef(null);
     const $mesh = useRef(null);
     const $raycaster = useRef(new THREE.Raycaster());
-    const $pointer = useRef(new THREE.Vector2());
     const $labels = useRef([]);
+    const [activePoint, setActivePoint] = useState(null);
+    const [pointsAnimated, setPointsAnimated] = useState(false);
 
     // useEffect(() => {
     //     setTimeout(() => {
@@ -100,6 +110,9 @@ const ThreeJS = ({}: ThreeJSProps) => {
                             ease: 'none',
                             duration: 1,
                             delay: 0.7 * index,
+                            onStart: () => {
+                                index === 0 && setPointsAnimated(true);
+                            }
                         });
                     });
                 },
@@ -275,18 +288,38 @@ const ThreeJS = ({}: ThreeJSProps) => {
         lineObjs.forEach(obj => $scene.current.add(obj));
     }, []);
 
-    const detectClick = useCallback(ev => {
-        // const topOffset = $globeRef.current.getBoundingClientRect().top;
-        // $pointer.current.x = (ev.clientX / $globeRef.current.offsetWidth) * 2 - 1;
-        // $pointer.current.y = -((ev.clientY - topOffset) / $globeRef.current.offsetHeight) * 2 + 1;
-        //
-        // $raycaster.current.setFromCamera($pointer.current, $camera.current);
-        // const intersects = $raycaster.current.intersectObjects($scene.current.children);
-        //
-        // for (let i = 0; i < intersects.length; i++) {
-        //     // intersects[i].object.material.color.set(0xff0000);
-        //     console.log(1, intersects[i].object.name);
-        // }
+    const handleClick = useCallback((coordinates: number[], index: number) => {
+        setActivePoint(index);
+        $controls.current.autoRotate = false;
+
+        const lat = coordinates[0] * (Math.PI / 180);
+        const lng = coordinates[1] * (Math.PI / 180);
+
+        const alpha = $controls.current.getAzimuthalAngle();
+        const beta = $controls.current.getPolarAngle() - Math.PI / 2;
+
+        gsap.fromTo(
+            $controls.current,
+            {
+                minAzimuthAngle: alpha,
+                maxAzimuthAngle: alpha,
+                minPolarAngle: Math.PI / 2 + beta,
+                maxPolarAngle: Math.PI / 2 + beta,
+            },
+            {
+                minAzimuthAngle: lat - Math.PI / 2,
+                maxAzimuthAngle: lat - Math.PI / 2,
+                minPolarAngle: Math.PI / 2 - lng,
+                maxPolarAngle: Math.PI / 2 - lng,
+                duration: 1,
+                onComplete: () => {
+                    $controls.current.minAzimuthAngle = -Infinity;
+                    $controls.current.maxAzimuthAngle = Infinity;
+                    $controls.current.minPolarAngle = 0;
+                    $controls.current.maxPolarAngle = Math.PI;
+                },
+            }
+        );
     }, []);
 
     const Globe = useCallback(() => {
@@ -341,6 +374,7 @@ const ThreeJS = ({}: ThreeJSProps) => {
         $controls.current.enablePan = false;
         $controls.current.dampingFactor = 0.05;
         $controls.current.screenSpacePanning = false;
+        $controls.current.saveState();
 
         createContinents();
 
@@ -375,14 +409,22 @@ const ThreeJS = ({}: ThreeJSProps) => {
 
     return (
         <div className={styles.main}>
-            <div ref={$globeRef} onClick={ev => detectClick(ev)}></div>
+            <div ref={$globeRef}></div>
 
             <div className={styles.markers}>
                 {continentData.features.map((feature, i) => {
                     if (feature.pointCoordinates) {
                         return (
-                            <div key={i} className={styles.marker} id={`${feature.id}-marker`}>
-                                <ThreeJSMapDataTooltip isActive={true} />
+                            <div
+                                key={i}
+                                className={styles.marker}
+                                id={`${feature.id}-marker`}
+                                onClick={() => handleClick(feature.pointCoordinates, i)}
+                            >
+                                <ThreeJSMapDataTooltip
+                                    isActive={activePoint === i}
+                                    data={continentsData[i]}
+                                />
                             </div>
                         );
                     }
