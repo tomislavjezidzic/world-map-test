@@ -5,7 +5,6 @@ import locationsData from '@public/share_my_GPS_timeline_since_may_2024-reduced.
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GeoJsonGeometry } from 'three-geojson-geometry';
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
-import markerImg from '@public/images/marker.svg';
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer';
 
 import gsap from 'gsap';
@@ -21,6 +20,7 @@ if (typeof window !== 'undefined') {
 }
 
 interface ThreeJSProps {
+    isFlat?: boolean;
     continentsData: {
         id: string;
         countries: string[];
@@ -53,7 +53,7 @@ function getPXfromLatLng(lat, lon) {
 }
  */
 
-const ThreeJS = ({ continentsData }: ThreeJSProps) => {
+const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
     const $globeRef = useRef<HTMLDivElement>(null);
     const $point = useRef(null);
     const $scene = useRef(null);
@@ -67,7 +67,6 @@ const ThreeJS = ({ continentsData }: ThreeJSProps) => {
     const $raycaster = useRef(new THREE.Raycaster());
     const $labels = useRef([]);
     const [activePoint, setActivePoint] = useState(null);
-    const [initAnimationStarted, setInitAnimationStarted] = useState(false);
 
     // useEffect(() => {
     //     setTimeout(() => {
@@ -99,18 +98,14 @@ const ThreeJS = ({ continentsData }: ThreeJSProps) => {
     // }, []);
 
     useGSAP(() => {
-        if ($globeRef.current && !initAnimationStarted) {
-            console.log(123);
+        if ($globeRef.current) {
             ScrollTrigger.create({
                 trigger: $globeRef.current,
                 start: 'top 30%',
                 end: 'bottom center',
+                once: true,
                 onEnter: () => {
-                    gsap.timeline({
-                        onStart: () => {
-                            setInitAnimationStarted(true);
-                        },
-                    })
+                    gsap.timeline({})
                         .add('start')
                         .from(
                             $scene.current.rotation,
