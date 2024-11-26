@@ -112,7 +112,7 @@ const ThreeJS = ({ continentsData }: ThreeJSProps) => {
                             delay: 0.7 * index,
                             onStart: () => {
                                 index === 0 && setPointsAnimated(true);
-                            }
+                            },
                         });
                     });
                 },
@@ -288,39 +288,49 @@ const ThreeJS = ({ continentsData }: ThreeJSProps) => {
         lineObjs.forEach(obj => $scene.current.add(obj));
     }, []);
 
-    const handleClick = useCallback((coordinates: number[], index: number) => {
-        setActivePoint(index);
-        $controls.current.autoRotate = false;
+    const handleClick = useCallback(
+        (coordinates: number[], index: number) => {
+            console.log(activePoint);
+            const lat = coordinates[0] * (Math.PI / 180);
+            let lng = 0;
 
-        const lat = coordinates[0] * (Math.PI / 180);
-        const lng = coordinates[1] * (Math.PI / 180);
-
-        const alpha = $controls.current.getAzimuthalAngle();
-        const beta = $controls.current.getPolarAngle() - Math.PI / 2;
-
-        gsap.fromTo(
-            $controls.current,
-            {
-                minAzimuthAngle: alpha,
-                maxAzimuthAngle: alpha,
-                minPolarAngle: Math.PI / 2 + beta,
-                maxPolarAngle: Math.PI / 2 + beta,
-            },
-            {
-                minAzimuthAngle: lat - Math.PI / 2,
-                maxAzimuthAngle: lat - Math.PI / 2,
-                minPolarAngle: Math.PI / 2 - lng,
-                maxPolarAngle: Math.PI / 2 - lng,
-                duration: 1,
-                onComplete: () => {
-                    $controls.current.minAzimuthAngle = -Infinity;
-                    $controls.current.maxAzimuthAngle = Infinity;
-                    $controls.current.minPolarAngle = 0;
-                    $controls.current.maxPolarAngle = Math.PI;
-                },
+            if (activePoint === index) {
+                setActivePoint(null);
+                $controls.current.autoRotate = true;
+            } else {
+                lng = coordinates[1] * (Math.PI / 180);
+                setActivePoint(index);
+                $controls.current.autoRotate = false;
             }
-        );
-    }, []);
+
+            const alpha = $controls.current.getAzimuthalAngle();
+            const beta = $controls.current.getPolarAngle() - Math.PI / 2;
+
+            gsap.fromTo(
+                $controls.current,
+                {
+                    minAzimuthAngle: alpha,
+                    maxAzimuthAngle: alpha,
+                    minPolarAngle: Math.PI / 2 + beta,
+                    maxPolarAngle: Math.PI / 2 + beta,
+                },
+                {
+                    minAzimuthAngle: lat - Math.PI / 2,
+                    maxAzimuthAngle: lat - Math.PI / 2,
+                    minPolarAngle: Math.PI / 2 - lng,
+                    maxPolarAngle: Math.PI / 2 - lng,
+                    duration: 1,
+                    onComplete: () => {
+                        $controls.current.minAzimuthAngle = -Infinity;
+                        $controls.current.maxAzimuthAngle = Infinity;
+                        $controls.current.minPolarAngle = 0;
+                        $controls.current.maxPolarAngle = Math.PI;
+                    },
+                }
+            );
+        },
+        [activePoint]
+    );
 
     const Globe = useCallback(() => {
         const w = $globeRef.current.offsetWidth || window.innerWidth;

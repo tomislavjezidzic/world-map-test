@@ -42,14 +42,14 @@
         transform: translate(-50%, -50%) rotate(90deg);
     }
 
-    .isActive & {
+    &.isActive {
         &:before {
-            transition: transform 0.5s;
+            transition: transform 0.5s 1s;
             transform: translate(-50%, -50%) rotate(-45deg);
         }
 
         &:after {
-            transition: transform 0.5s;
+            transition: transform 0.5s 1s;
             transform: translate(-50%, -50%) rotate(45deg);
         }
     }

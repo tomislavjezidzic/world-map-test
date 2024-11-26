@@ -32,8 +32,6 @@ const ThreeJSMapDataTooltip = ({ isActive = false, data = null }: ThreeJSMapData
                     height: 0,
                     onComplete: () => {
                         gsap.to($content.current, {
-
-
                             width: 320,
                             height: height,
                         });
@@ -44,12 +42,10 @@ const ThreeJSMapDataTooltip = ({ isActive = false, data = null }: ThreeJSMapData
     }, []);
 
     const close = useCallback(() => {
-
         gsap.to($content.current, {
             width: 0,
             height: 0,
         });
-
     }, []);
 
     useGSAP(() => {
@@ -65,7 +61,11 @@ const ThreeJSMapDataTooltip = ({ isActive = false, data = null }: ThreeJSMapData
     return (
         <div className={cn(styles.wrapper)}>
             <div className={styles.main}>
-                <div className={styles.marker}></div>
+                <div
+                    className={cn(styles.marker, {
+                        [styles.isActive]: isActive,
+                    })}
+                ></div>
 
                 {data && (
                     <div className={styles.content} ref={$content}>
