@@ -6,6 +6,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GeoJsonGeometry } from 'three-geojson-geometry';
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer';
+import threeGeoJSON from './threeGeoJSON';
 
 import gsap from 'gsap';
 import continentData from './data/continents.json';
@@ -68,6 +69,7 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
     const $raycaster = useRef(new THREE.Raycaster());
     const $labels = useRef([]);
     const [activePoint, setActivePoint] = useState(null);
+    const $threeGeoJSON = useRef(null);
 
     // useEffect(() => {
     //     setTimeout(() => {
@@ -313,6 +315,12 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
             opacity: 0,
         });
 
+        $threeGeoJSON.current.drawThreeGeo(continentData, 400, 'plane', {
+            color: 'red',
+            width: $w.current,
+            height: $h.current,
+        });
+
         continentData.features.forEach((feature: any) => {
             if (!isFlat) {
                 const continent = new THREE.LineSegments(
@@ -436,6 +444,8 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
         $renderer.current.setSize($w.current, $h.current);
 
         $globeRef.current.appendChild($renderer.current.domElement);
+
+        $threeGeoJSON.current = new threeGeoJSON($scene.current);
 
         $labelRenderer.current = new CSS2DRenderer();
         $labelRenderer.current.setSize(window.innerWidth, window.innerHeight);
