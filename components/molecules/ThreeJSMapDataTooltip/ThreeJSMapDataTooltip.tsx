@@ -6,6 +6,7 @@ import gsap from 'gsap';
 
 interface ThreeJSMapDataTooltipProps {
     isActive: boolean;
+    isFlat?: boolean;
     name?: string;
     data?: {
         countries?: string[];
@@ -18,6 +19,7 @@ interface ThreeJSMapDataTooltipProps {
 
 const ThreeJSMapDataTooltip = ({
     isActive = false,
+    isFlat = false,
     data = null,
     name,
 }: ThreeJSMapDataTooltipProps) => {
@@ -33,7 +35,7 @@ const ThreeJSMapDataTooltip = ({
 
         gsap.set($content.current, {
             height: 'auto',
-            delay: 0.8,
+            delay: isFlat ? 0 : 0.8,
             onComplete: () => {
                 height = $content.current.clientHeight;
 

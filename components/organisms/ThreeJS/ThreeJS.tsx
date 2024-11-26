@@ -12,7 +12,6 @@ import continentData from './data/continents.json';
 
 import * as d3 from 'd3';
 import { useGSAP } from '@gsap/react';
-import cn from 'classnames';
 import ThreeJSMapDataTooltip from '@molecules/ThreeJSMapDataTooltip';
 
 if (typeof window !== 'undefined') {
@@ -55,13 +54,15 @@ function getPXfromLatLng(lat, lon) {
 
 const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
     const $globeRef = useRef<HTMLDivElement>(null);
+    const $w = useRef(null);
+    const $h = useRef(null);
     const $point = useRef(null);
     const $scene = useRef(null);
     const $pointGroups = useRef([]);
     const $controls = useRef(null);
     const $camera = useRef(null);
     const $renderer = useRef(null);
-    const $lineObjs = useRef(null);
+    const $lineObjs = useRef([null]);
     const $labelRenderer = useRef(null);
     const $mesh = useRef(null);
     const $raycaster = useRef(new THREE.Raycaster());
@@ -128,7 +129,7 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                             'start'
                         )
                         .to(
-                            $mesh.current.material,
+                            $mesh?.current?.material,
                             {
                                 opacity: 1,
                                 ease: 'none',
@@ -136,7 +137,7 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                             'start'
                         )
                         .to(
-                            $lineObjs.current[0].material,
+                            $lineObjs?.current[0]?.material,
                             {
                                 opacity: 1,
                                 ease: 'none',
@@ -144,7 +145,7 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                             'start'
                         )
                         .to(
-                            $lineObjs.current[1].material,
+                            $lineObjs?.current[1]?.material,
                             {
                                 opacity: 1,
                                 ease: 'none',
@@ -178,14 +179,21 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
     }, [$camera?.current, $scene.current, $controls.current]);
 
     const getCoordinates = useCallback((lat: number, lng: number) => {
-        const phi = ((90 - lat) * Math.PI) / 180;
-        const theta = ((180 - lng) * Math.PI) / 180;
+        if (isFlat) {
+            const x = (lng + 180.0) * ($w.current / 2 / 360.0);
+            const y = (lat + 90.0) * ($h.current / 2 / 180.0);
 
-        return {
-            x: 200 * Math.sin(phi) * Math.cos(theta),
-            y: 200 * Math.cos(phi),
-            z: 200 * Math.sin(phi) * Math.sin(theta),
-        };
+            return { x: x, y: y, z: 0 };
+        } else {
+            const phi = ((90 - lat) * Math.PI) / 180;
+            const theta = ((180 - lng) * Math.PI) / 180;
+
+            return {
+                x: 200 * Math.sin(phi) * Math.cos(theta),
+                y: 200 * Math.cos(phi),
+                z: 200 * Math.sin(phi) * Math.sin(theta),
+            };
+        }
     }, []);
 
     const addPoint = useCallback(
@@ -198,9 +206,8 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
             $point.current.position.y = y;
             $point.current.position.z = z;
 
-            $point.current.lookAt($mesh.current.position);
+            !isFlat && $point.current.lookAt($mesh.current.position);
 
-            $point.current.scale.z = 0.1;
             $point.current.updateMatrix();
 
             subGeo.merge($point.current.geometry, $point.current.matrix);
@@ -234,7 +241,7 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
             subGeo,
             new THREE.MeshBasicMaterial({
                 color: new THREE.Color(0x3fdbba),
-                side: THREE.BackSide,
+                side: isFlat ? THREE.FrontSide : THREE.BackSide,
                 transparent: true,
                 opacity: 0,
             })
@@ -246,25 +253,29 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
 
     const render = useCallback(() => {
         if (!$camera?.current) return;
-        $camera.current.lookAt($mesh.current.position);
+        if (isFlat) {
+            $camera.current.lookAt(0, 0, 0);
+        } else {
+            $camera.current.lookAt($mesh.current.position);
 
-        $labels.current.forEach(label => {
-            label.getWorldPosition($raycaster.current.ray.origin);
+            $labels.current.forEach(label => {
+                label.getWorldPosition($raycaster.current.ray.origin);
 
-            const rd = $camera.current.position
-                .clone()
-                .sub($raycaster.current.ray.origin)
-                .normalize();
-            $raycaster.current.ray.direction.set(rd.x, rd.y, rd.z);
+                const rd = $camera.current.position
+                    .clone()
+                    .sub($raycaster.current.ray.origin)
+                    .normalize();
+                $raycaster.current.ray.direction.set(rd.x, rd.y, rd.z);
 
-            const hits = $raycaster.current.intersectObjects([$mesh.current]);
+                const hits = $raycaster.current.intersectObjects([$mesh.current]);
 
-            if (hits.length > 0 && !label.element.classList.contains('is-hidden')) {
-                label.element.classList.add('is-hidden');
-            } else if (hits.length == 0 && label.element.classList.contains('is-hidden')) {
-                label.element.classList.remove('is-hidden');
-            }
-        });
+                if (hits.length > 0 && !label.element.classList.contains('is-hidden')) {
+                    label.element.classList.add('is-hidden');
+                } else if (hits.length == 0 && label.element.classList.contains('is-hidden')) {
+                    label.element.classList.remove('is-hidden');
+                }
+            });
+        }
 
         $renderer.current.render($scene.current, $camera.current);
         $labelRenderer.current.render($scene.current, $camera.current);
@@ -281,17 +292,19 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
     }, []);
 
     const createContinents = useCallback(() => {
-        $lineObjs.current = [
-            new THREE.LineSegments(
-                new GeoJsonGeometry(d3.geoGraticule10(), 199.5),
-                new THREE.LineBasicMaterial({
-                    color: 0x575654,
-                    side: THREE.BackSide,
-                    transparent: true,
-                    opacity: 0,
-                })
-            ),
-        ];
+        if (!isFlat) {
+            $lineObjs.current = [
+                new THREE.LineSegments(
+                    new GeoJsonGeometry(d3.geoGraticule10(), 199.5),
+                    new THREE.LineBasicMaterial({
+                        color: 0x575654,
+                        side: THREE.BackSide,
+                        transparent: true,
+                        opacity: 0,
+                    })
+                ),
+            ];
+        }
 
         const material = new THREE.LineBasicMaterial({
             color: 0x3fdbed,
@@ -301,20 +314,22 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
         });
 
         continentData.features.forEach((feature: any) => {
-            const continent = new THREE.LineSegments(
-                new GeoJsonGeometry(feature.geometry, 199),
-                material
-            );
+            if (!isFlat) {
+                const continent = new THREE.LineSegments(
+                    new GeoJsonGeometry(feature.geometry, 199),
+                    material
+                );
 
-            continent.name = feature.id;
-            continent.rotation.y = -Math.PI / 2;
+                continent.name = feature.id;
+                continent.rotation.y = -Math.PI / 2;
 
-            $lineObjs.current.push(continent);
+                $lineObjs.current.push(continent);
+            }
 
             if (feature.pointCoordinates) {
                 const { x, y, z } = getCoordinates(
-                    feature.pointCoordinates[1],
-                    feature.pointCoordinates[0]
+                    isFlat ? feature.pointCoordinates[1] - 90 : feature.pointCoordinates[1],
+                    isFlat ? feature.pointCoordinates[0] - 180 : feature.pointCoordinates[0]
                 );
 
                 let labelDiv = document.getElementById(feature.id + '-marker');
@@ -342,16 +357,17 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                 (index === null && activePoint != null)
             ) {
                 setActivePoint(null);
-                $controls.current.autoRotate = true;
-                console.log(1);
+                !isFlat && ($controls.current.autoRotate = true);
             } else if (index != null) {
                 lng = coordinates[1] * (Math.PI / 180);
                 setActivePoint(index);
-                $controls.current.autoRotate = false;
+                !isFlat && ($controls.current.autoRotate = false);
                 activePoint ? (delay = 0.5) : (delay = 0);
             } else {
                 return;
             }
+
+            if (isFlat) return;
 
             const alpha = $controls.current.getAzimuthalAngle();
             const beta = $controls.current.getPolarAngle() - Math.PI / 2;
@@ -384,26 +400,28 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
     );
 
     const Globe = useCallback(() => {
-        const w = $globeRef.current.offsetWidth || window.innerWidth;
-        const h = $globeRef.current.offsetHeight || window.innerHeight;
+        $w.current = $globeRef.current.offsetWidth || window.innerWidth;
+        $h.current = $globeRef.current.offsetHeight || window.innerHeight;
 
-        $camera.current = new THREE.PerspectiveCamera(30, w / h, 1, 10000);
+        $camera.current = new THREE.PerspectiveCamera(30, $w.current / $h.current, 1, 10000);
         $camera.current.position.z = 1100;
         $camera.current.position.y = 200;
 
         $scene.current = new THREE.Scene();
 
-        const geometry = new THREE.SphereGeometry(199, 40, 30);
+        if (!isFlat) {
+            const geometry = new THREE.SphereGeometry(199, 40, 30);
 
-        const material = new THREE.MeshBasicMaterial({
-            color: 0x1b1b1b,
-            transparent: true,
-            opacity: 0,
-        });
+            const material = new THREE.MeshBasicMaterial({
+                color: 0x1b1b1b,
+                transparent: true,
+                opacity: 0,
+            });
 
-        $mesh.current = new THREE.Mesh(geometry, material);
-        $mesh.current.rotation.y = Math.PI;
-        $scene.current.add($mesh.current);
+            $mesh.current = new THREE.Mesh(geometry, material);
+            $mesh.current.rotation.y = Math.PI;
+            $scene.current.add($mesh.current);
+        }
 
         const pointGeometry = new THREE.PlaneGeometry(1, 1);
         $point.current = new THREE.Mesh(pointGeometry);
@@ -415,7 +433,7 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
 
         $renderer.current.setPixelRatio(1.5);
 
-        $renderer.current.setSize(w, h);
+        $renderer.current.setSize($w.current, $h.current);
 
         $globeRef.current.appendChild($renderer.current.domElement);
 
@@ -431,7 +449,7 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
         $controls.current = new OrbitControls($camera.current, $labelRenderer.current.domElement);
         $controls.current.update();
         $controls.current.enableDamping = true;
-        $controls.current.autoRotate = true;
+        $controls.current.autoRotate = !isFlat;
         $controls.current.autoRotateSpeed = 0.3;
         $controls.current.enableZoom = false;
         $controls.current.enablePan = false;
@@ -485,6 +503,7 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                                 onClick={() => handleClick(feature.pointCoordinates, i)}
                             >
                                 <ThreeJSMapDataTooltip
+                                    isFlat={isFlat}
                                     name={feature.properties.name}
                                     isActive={activePoint === i}
                                     data={continentsData.find(data => data.id === feature.id)}
