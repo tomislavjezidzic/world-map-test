@@ -262,18 +262,6 @@ const ThreeJS = ({ continentsData }: ThreeJSProps) => {
                     feature.pointCoordinates[0]
                 );
 
-                // const marker = new THREE.Mesh(
-                //     new THREE.PlaneGeometry(12, 12),
-                //     new THREE.MeshBasicMaterial({
-                //         side: THREE.BackSide,
-                //         map: new THREE.TextureLoader().load(markerImg.src),
-                //     })
-                // );
-                // marker.name = feature.id + '-marker';
-                // marker.position.set(x, y, z);
-                // marker.lookAt(0, 0, 0);
-                // $scene.current.add(marker);
-
                 let labelDiv = document.getElementById(feature.id + '-marker');
                 let label = new CSS2DObject(labelDiv);
 
@@ -290,7 +278,6 @@ const ThreeJS = ({ continentsData }: ThreeJSProps) => {
 
     const handleClick = useCallback(
         (coordinates: number[], index: number) => {
-            console.log(activePoint);
             const lat = coordinates[0] * (Math.PI / 180);
             let lng = 0;
 
@@ -432,8 +419,9 @@ const ThreeJS = ({ continentsData }: ThreeJSProps) => {
                                 onClick={() => handleClick(feature.pointCoordinates, i)}
                             >
                                 <ThreeJSMapDataTooltip
+                                    name={feature.properties.name}
                                     isActive={activePoint === i}
-                                    data={continentsData[i]}
+                                    data={continentsData.find(data => data.id === feature.id)}
                                 />
                             </div>
                         );

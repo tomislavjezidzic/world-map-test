@@ -6,8 +6,8 @@ import gsap from 'gsap';
 
 interface ThreeJSMapDataTooltipProps {
     isActive: boolean;
+    name?: string;
     data?: {
-        name?: string;
         countries?: string[];
         humans?: string;
         users?: string;
@@ -16,7 +16,7 @@ interface ThreeJSMapDataTooltipProps {
     };
 }
 
-const ThreeJSMapDataTooltip = ({ isActive = false, data = null }: ThreeJSMapDataTooltipProps) => {
+const ThreeJSMapDataTooltip = ({ isActive = false, data = null, name }: ThreeJSMapDataTooltipProps) => {
     const $content = useRef(null);
 
     const open = useCallback(() => {
@@ -70,7 +70,7 @@ const ThreeJSMapDataTooltip = ({ isActive = false, data = null }: ThreeJSMapData
                 {data && (
                     <div className={styles.content} ref={$content}>
                         <div className={styles.contentInner}>
-                            <h3 className={styles.continent}>{data?.name}</h3>
+                            <h3 className={styles.continent}>{name}</h3>
 
                             <p className={styles.countries}>{data?.countries?.join(', ')}.</p>
 

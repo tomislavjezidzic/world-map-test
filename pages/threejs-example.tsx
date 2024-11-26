@@ -5,9 +5,9 @@ import belowMapImage from '@public/images/below.jpg';
 import { useEffect } from 'react';
 import ThreeJS from '@organisms/ThreeJS';
 
-interface KeplerExampleProps {}
+interface ThreeJSExampleProps {}
 
-const KeplerExamplePage = ({}: KeplerExampleProps) => {
+const KeplerExamplePage = ({}: ThreeJSExampleProps) => {
     useEffect(() => {
         if (typeof window !== 'undefined') {
             window.history.scrollRestoration = 'manual';
