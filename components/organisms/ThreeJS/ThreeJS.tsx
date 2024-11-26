@@ -61,12 +61,13 @@ const ThreeJS = ({ continentsData }: ThreeJSProps) => {
     const $controls = useRef(null);
     const $camera = useRef(null);
     const $renderer = useRef(null);
+    const $lineObjs = useRef(null);
     const $labelRenderer = useRef(null);
     const $mesh = useRef(null);
     const $raycaster = useRef(new THREE.Raycaster());
     const $labels = useRef([]);
     const [activePoint, setActivePoint] = useState(null);
-    const [pointsAnimated, setPointsAnimated] = useState(false);
+    const [initAnimationStarted, setInitAnimationStarted] = useState(false);
 
     // useEffect(() => {
     //     setTimeout(() => {
@@ -98,27 +99,82 @@ const ThreeJS = ({ continentsData }: ThreeJSProps) => {
     // }, []);
 
     useGSAP(() => {
-        if ($globeRef.current) {
+        if ($globeRef.current && !initAnimationStarted) {
+            console.log(123);
             ScrollTrigger.create({
                 trigger: $globeRef.current,
-                start: 'top center',
+                start: 'top 30%',
                 end: 'bottom center',
                 onEnter: () => {
+                    gsap.timeline({
+                        onStart: () => {
+                            setInitAnimationStarted(true);
+                        },
+                    })
+                        .add('start')
+                        .from(
+                            $scene.current.rotation,
+                            {
+                                y: -Math.PI / 2,
+                                duration: 3,
+                                ease: 'power4.out',
+                            },
+                            'start'
+                        )
+                        .from(
+                            $scene.current.scale,
+                            {
+                                x: 0.5,
+                                y: 0.5,
+                                z: 0.5,
+                                duration: 1,
+                                ease: 'power4.out',
+                            },
+                            'start'
+                        )
+                        .to(
+                            $mesh.current.material,
+                            {
+                                opacity: 1,
+                                ease: 'none',
+                            },
+                            'start'
+                        )
+                        .to(
+                            $lineObjs.current[0].material,
+                            {
+                                opacity: 1,
+                                ease: 'none',
+                            },
+                            'start'
+                        )
+                        .to(
+                            $lineObjs.current[1].material,
+                            {
+                                opacity: 1,
+                                ease: 'none',
+                            },
+                            'start+=0.5'
+                        );
+
                     $pointGroups.current.forEach((group, index) => {
                         gsap.to(group.material, {
                             opacity: 1,
                             ease: 'none',
                             duration: 1,
-                            delay: 0.7 * index,
-                            onStart: () => {
-                                index === 0 && setPointsAnimated(true);
-                            },
+                            delay: 1 + 0.7 * index,
                         });
+                    });
+
+                    $labels.current.forEach(label => {
+                        setTimeout(() => {
+                            label.element.classList.add('is-loaded');
+                        }, 1000);
                     });
                 },
             });
         }
-    }, [$globeRef.current, $pointGroups.current]);
+    }, []);
 
     const animate = useCallback(() => {
         requestAnimationFrame(animate);
@@ -230,12 +286,14 @@ const ThreeJS = ({ continentsData }: ThreeJSProps) => {
     }, []);
 
     const createContinents = useCallback(() => {
-        const lineObjs = [
+        $lineObjs.current = [
             new THREE.LineSegments(
                 new GeoJsonGeometry(d3.geoGraticule10(), 199.5),
                 new THREE.LineBasicMaterial({
                     color: 0x575654,
                     side: THREE.BackSide,
+                    transparent: true,
+                    opacity: 0,
                 })
             ),
         ];
@@ -243,6 +301,8 @@ const ThreeJS = ({ continentsData }: ThreeJSProps) => {
         const material = new THREE.LineBasicMaterial({
             color: 0x3fdbed,
             side: THREE.BackSide,
+            transparent: true,
+            opacity: 0,
         });
 
         continentData.features.forEach((feature: any) => {
@@ -254,7 +314,7 @@ const ThreeJS = ({ continentsData }: ThreeJSProps) => {
             continent.name = feature.id;
             continent.rotation.y = -Math.PI / 2;
 
-            lineObjs.push(continent);
+            $lineObjs.current.push(continent);
 
             if (feature.pointCoordinates) {
                 const { x, y, z } = getCoordinates(
@@ -273,7 +333,7 @@ const ThreeJS = ({ continentsData }: ThreeJSProps) => {
             }
         });
 
-        lineObjs.forEach(obj => $scene.current.add(obj));
+        $lineObjs.current.forEach(obj => $scene.current.add(obj));
     }, []);
 
     const handleClick = useCallback(
@@ -342,6 +402,8 @@ const ThreeJS = ({ continentsData }: ThreeJSProps) => {
 
         const material = new THREE.MeshBasicMaterial({
             color: 0x1b1b1b,
+            transparent: true,
+            opacity: 0,
         });
 
         $mesh.current = new THREE.Mesh(geometry, material);
