@@ -277,17 +277,22 @@ const ThreeJS = ({ continentsData }: ThreeJSProps) => {
     }, []);
 
     const handleClick = useCallback(
-        (coordinates: number[], index: number) => {
+        (coordinates: number[], index: number | null) => {
             const lat = coordinates[0] * (Math.PI / 180);
             let lng = 0;
 
-            if (activePoint === index) {
+            if (
+                (activePoint === index && index != null) ||
+                (index === null && activePoint != null)
+            ) {
                 setActivePoint(null);
                 $controls.current.autoRotate = true;
-            } else {
+            } else if (index != null) {
                 lng = coordinates[1] * (Math.PI / 180);
                 setActivePoint(index);
                 $controls.current.autoRotate = false;
+            } else {
+                return;
             }
 
             const alpha = $controls.current.getAzimuthalAngle();
@@ -406,7 +411,7 @@ const ThreeJS = ({ continentsData }: ThreeJSProps) => {
 
     return (
         <div className={styles.main}>
-            <div ref={$globeRef}></div>
+            <div ref={$globeRef} onClick={() => handleClick([0, 0], null)}></div>
 
             <div className={styles.markers}>
                 {continentData.features.map((feature, i) => {

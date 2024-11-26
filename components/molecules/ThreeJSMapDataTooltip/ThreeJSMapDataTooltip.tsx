@@ -16,15 +16,24 @@ interface ThreeJSMapDataTooltipProps {
     };
 }
 
-const ThreeJSMapDataTooltip = ({ isActive = false, data = null, name }: ThreeJSMapDataTooltipProps) => {
+const ThreeJSMapDataTooltip = ({
+    isActive = false,
+    data = null,
+    name,
+}: ThreeJSMapDataTooltipProps) => {
     const $content = useRef(null);
+    const $texts = useRef([null]);
 
     const open = useCallback(() => {
         let height = 0;
 
+        gsap.set($texts.current, {
+            autoAlpha: 0,
+        });
+
         gsap.set($content.current, {
             height: 'auto',
-            delay: 0.7,
+            delay: 0.8,
             onComplete: () => {
                 height = $content.current.clientHeight;
 
@@ -32,8 +41,12 @@ const ThreeJSMapDataTooltip = ({ isActive = false, data = null, name }: ThreeJSM
                     height: 0,
                     onComplete: () => {
                         gsap.to($content.current, {
-                            width: 320,
                             height: height,
+                        });
+
+                        gsap.to($texts.current, {
+                            autoAlpha: 1,
+                            stagger: 0.07,
                         });
                     },
                 });
@@ -43,8 +56,11 @@ const ThreeJSMapDataTooltip = ({ isActive = false, data = null, name }: ThreeJSM
 
     const close = useCallback(() => {
         gsap.to($content.current, {
-            width: 0,
             height: 0,
+        });
+
+        gsap.to($texts.current, {
+            autoAlpha: 0,
         });
     }, []);
 
@@ -58,6 +74,13 @@ const ThreeJSMapDataTooltip = ({ isActive = false, data = null, name }: ThreeJSM
         }
     }, [isActive]);
 
+    const setRef = useCallback(
+        (el: HTMLElement, key: number) => {
+            void ($texts.current[key] = el);
+        },
+        [$texts]
+    );
+
     return (
         <div className={cn(styles.wrapper)}>
             <div className={styles.main}>
@@ -70,30 +93,34 @@ const ThreeJSMapDataTooltip = ({ isActive = false, data = null, name }: ThreeJSM
                 {data && (
                     <div className={styles.content} ref={$content}>
                         <div className={styles.contentInner}>
-                            <h3 className={styles.continent}>{name}</h3>
+                            <h3 className={styles.continent} ref={el => setRef(el, 0)}>
+                                {name}
+                            </h3>
 
-                            <p className={styles.countries}>{data?.countries?.join(', ')}.</p>
+                            <p className={styles.countries} ref={el => setRef(el, 1)}>
+                                {data?.countries?.join(', ')}.
+                            </p>
 
                             <ul>
-                                <li>
+                                <li ref={el => setRef(el, 2)}>
                                     <p>Unique humans</p>
 
                                     <span>{data?.humans}</span>
                                 </li>
 
-                                <li>
+                                <li ref={el => setRef(el, 3)}>
                                     <p>World App users</p>
 
                                     <span>{data?.users}</span>
                                 </li>
 
-                                <li>
+                                <li ref={el => setRef(el, 4)}>
                                     <p>Wallet transactions</p>
 
                                     <span>{data?.transactions}</span>
                                 </li>
 
-                                <li>
+                                <li ref={el => setRef(el, 5)}>
                                     <p>Active Orbs</p>
 
                                     <span>{data?.orbs}</span>
