@@ -381,6 +381,49 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
         [activePoint]
     );
 
+    const debounce = (func: any, wait: number) => {
+        let timeout: string | number | NodeJS.Timeout;
+        return (...args: any) => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                func(...args);
+            }, wait);
+        };
+    };
+
+    const handleGlobeRotationEnd = useCallback(() => {
+        const beta = $controls.current.getPolarAngle() - Math.PI / 2;
+
+        gsap.fromTo(
+            $controls.current,
+            {
+                minPolarAngle: Math.PI / 2 + beta,
+                maxPolarAngle: Math.PI / 2 + beta,
+            },
+            {
+                minPolarAngle: Math.PI / 2,
+                maxPolarAngle: Math.PI / 2,
+                duration: 1,
+                ease: 'power3.out',
+                onComplete: () => {
+                    $controls.current.minPolarAngle = 0;
+                    $controls.current.maxPolarAngle = Math.PI;
+                },
+            }
+        );
+    }, []);
+
+    const debouncedHandleGlobeRotationEnd = debounce(handleGlobeRotationEnd, 3000);
+
+    useEffect(() => {
+        if ($controls.current) {
+            $controls.current.addEventListener('end', debouncedHandleGlobeRotationEnd, false);
+        }
+        return () => {
+            $controls.current.removeEventListener('end', debouncedHandleGlobeRotationEnd, false);
+        };
+    }, [$controls.current]);
+
     const Globe = useCallback(() => {
         $w.current = $globeRef.current.offsetWidth;
         $h.current = $globeRef.current.offsetHeight;
@@ -395,11 +438,10 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                 1200
             );
         } else {
-            $camera.current = new THREE.PerspectiveCamera(30, $w.current / $h.current, 1, 5000);
+            $camera.current = new THREE.PerspectiveCamera(30, $w.current / $h.current, 1, 1200);
         }
 
         $camera.current.position.z = 1100;
-        $camera.current.position.y = !isFlat ? 200 : 0;
 
         $scene.current = new THREE.Scene();
 
