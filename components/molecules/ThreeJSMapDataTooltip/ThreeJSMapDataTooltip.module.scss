@@ -12,6 +12,11 @@
     position: absolute;
     left: 0;
     top: 0;
+
+    :global(.is-right) & {
+        left: auto;
+        right: 0;
+    }
 }
 
 .marker {
@@ -23,6 +28,11 @@
     top: 0;
     z-index: 1;
     cursor: pointer;
+
+    :global(.is-right) & {
+        left: auto;
+        right: 0;
+    }
 
     &:after,
     &:before {

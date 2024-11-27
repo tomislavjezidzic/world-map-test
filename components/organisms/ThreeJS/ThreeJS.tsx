@@ -162,6 +162,8 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                     });
 
                     $labels.current.forEach(label => {
+                        if (label.element.getBoundingClientRect().x > $w.current / 2 && isFlat)
+                            label.element.classList.add('is-right');
                         setTimeout(() => {
                             label.element.classList.add('is-loaded');
                         }, 1000);
