@@ -17,7 +17,7 @@ export default class threeGeoJSON {
     }
 
     drawThreeGeo(json, radius, shape, options) {
-        let json_geom = this.createGeometryArray(json);
+        let json_geom = this.createGeometryArray(json, shape);
         //An array to hold the feature geometries.
         let convertCoordinates = this.getConversionFunctionName(shape);
         //Whether you want to convert to spherical or planar coordinates.
@@ -26,10 +26,10 @@ export default class threeGeoJSON {
         //interpolated coordinates. Otherwise, lines go through the sphere instead of wrapping around.
 
         for (let geom_num = 0; geom_num < json_geom.length; geom_num++) {
-            if (json_geom[geom_num].type == 'Point') {
+            if (json_geom[geom_num].type === 'Point') {
                 convertCoordinates(json_geom[geom_num].coordinates, radius, options);
                 this.drawParticle(y_values[0], z_values[0], x_values[0], options);
-            } else if (json_geom[geom_num].type == 'MultiPoint') {
+            } else if (json_geom[geom_num].type === 'MultiPoint') {
                 for (
                     let point_num = 0;
                     point_num < json_geom[geom_num].coordinates.length;
@@ -38,7 +38,7 @@ export default class threeGeoJSON {
                     convertCoordinates(json_geom[geom_num].coordinates[point_num], radius, options);
                     this.drawParticle(y_values[0], z_values[0], x_values[0], options);
                 }
-            } else if (json_geom[geom_num].type == 'LineString') {
+            } else if (json_geom[geom_num].type === 'LineString') {
                 coordinate_array = this.createCoordinateArray(
                     json_geom[geom_num].coordinates,
                     options
@@ -48,7 +48,10 @@ export default class threeGeoJSON {
                     convertCoordinates(coordinate_array[point_num], radius, options);
                 }
                 this.drawLine(y_values, z_values, x_values, options);
-            } else if (json_geom[geom_num].type == 'Polygon') {
+            } else if (
+                json_geom[geom_num].type === 'MultiLineString' ||
+                json_geom[geom_num].type === 'Polygon'
+            ) {
                 for (
                     let segment_num = 0;
                     segment_num < json_geom[geom_num].coordinates.length;
@@ -63,22 +66,7 @@ export default class threeGeoJSON {
                     }
                     this.drawLine(y_values, z_values, x_values, options);
                 }
-            } else if (json_geom[geom_num].type == 'MultiLineString') {
-                for (
-                    let segment_num = 0;
-                    segment_num < json_geom[geom_num].coordinates.length;
-                    segment_num++
-                ) {
-                    coordinate_array = this.createCoordinateArray(
-                        json_geom[geom_num].coordinates[segment_num]
-                    );
-
-                    for (let point_num = 0; point_num < coordinate_array.length; point_num++) {
-                        convertCoordinates(coordinate_array[point_num], radius, options);
-                    }
-                    this.drawLine(y_values, z_values, x_values, options);
-                }
-            } else if (json_geom[geom_num].type == 'MultiPolygon') {
+            } else if (json_geom[geom_num].type === 'MultiPolygon') {
                 for (
                     let polygon_num = 0;
                     polygon_num < json_geom[geom_num].coordinates.length;
@@ -105,16 +93,21 @@ export default class threeGeoJSON {
         }
     }
 
-    createGeometryArray(json) {
+    createGeometryArray(json, shape) {
         let geometry_array = [];
 
-        if (json.type == 'Feature') {
+        if (json.type === 'Feature') {
             geometry_array.push(json.geometry);
-        } else if (json.type == 'FeatureCollection') {
+        } else if (json.type === 'FeatureCollection') {
             for (let feature_num = 0; feature_num < json.features.length; feature_num++) {
-                geometry_array.push(json.features[feature_num].geometry);
+                if (
+                    (shape === 'plane' && json.features[feature_num].id !== 'antarctica') ||
+                    shape === 'sphere'
+                ) {
+                    geometry_array.push(json.features[feature_num].geometry);
+                }
             }
-        } else if (json.type == 'GeometryCollection') {
+        } else if (json.type === 'GeometryCollection') {
             for (let geom_num = 0; geom_num < json.geometries.length; geom_num++) {
                 geometry_array.push(json.geometries[geom_num]);
             }
@@ -128,9 +121,9 @@ export default class threeGeoJSON {
     getConversionFunctionName(shape) {
         let conversionFunctionName;
 
-        if (shape == 'sphere') {
+        if (shape === 'sphere') {
             conversionFunctionName = this.convertToSphereCoords;
-        } else if (shape == 'plane') {
+        } else if (shape === 'plane') {
             conversionFunctionName = this.convertToPlaneCoords;
         } else {
             throw new Error('The shape that you specified is not valid.');
@@ -259,18 +252,18 @@ export default class threeGeoJSON {
 
     drawLine(x_values, y_values, z_values, options) {
         // container
-        let obj = new THREE.Object3D();
+        let objEl = new THREE.Object3D();
 
         // lines
         let line_geom = new THREE.Geometry();
         this.createVertexForEachPoint(line_geom, x_values, y_values, z_values);
         let line_material = new THREE.LineBasicMaterial({
-            color: 'red',
+            color: options.color || 'red',
         });
 
         let line = new THREE.Line(line_geom, line_material);
 
-        obj.add(line);
+        objEl.add(line);
 
         // mesh
         let mesh_geom = new THREE.Geometry();
@@ -282,20 +275,18 @@ export default class threeGeoJSON {
         });
         let mesh = new THREE.Mesh(mesh_geom, mesh_material);
 
-        obj.add(mesh);
-
-        this.scene.add(obj);
-
+        objEl.add(mesh);
+        this.scene.add(objEl);
         this.clearArrays();
     }
 
     createVertexForEachPoint(object_geometry, values_axis1, values_axis2, values_axis3) {
         for (let i = 0; i < values_axis1.length; i++) {
             object_geometry.vertices.push(
-                new THREE.Vector3(values_axis1[i], values_axis2[i], values_axis3[i])
+                new THREE.Vector3(values_axis1[i] || 0, values_axis2[i] || 0, values_axis3[i] || 0)
             );
 
-            object_geometry.faces.push(new THREE.Face3(0, i + 1, i)); // <- add faces
+            object_geometry.faces.push(new THREE.Face3(0, i, i)); // <- add faces
         }
     }
 
