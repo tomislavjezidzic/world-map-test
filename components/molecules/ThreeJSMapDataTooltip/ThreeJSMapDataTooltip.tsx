@@ -101,12 +101,9 @@ const ThreeJSMapDataTooltip = ({
             }
 
             if (box.y > canvasDimensions.height / 2) {
-                console.log(box.y, canvasDimensions.height / 2);
                 setIsBottom(true);
             }
         }
-
-        console.log(isBottom);
     }, [isFlat, canvasDimensions, isLoaded]);
 
     return (
