@@ -17,12 +17,17 @@ export default class threeGeoJSON {
     }
 
     drawThreeGeo(json, radius, shape, options) {
-        let json_geom = this.createGeometryArray(json, shape);
+        const json_geom = this.createGeometryArray(json, shape);
         //An array to hold the feature geometries.
-        let convertCoordinates = this.getConversionFunctionName(shape);
+        const convertCoordinates = this.getConversionFunctionName(shape);
         //Whether you want to convert to spherical or planar coordinates.
         let coordinate_array = [];
         //Re-usable array to hold coordinate values. This is necessary so that you can add
+
+        const line_material = new THREE.LineBasicMaterial({
+            color: options.color || 'red',
+        });
+
         //interpolated coordinates. Otherwise, lines go through the sphere instead of wrapping around.
 
         for (let geom_num = 0; geom_num < json_geom.length; geom_num++) {
@@ -47,7 +52,7 @@ export default class threeGeoJSON {
                 for (let point_num = 0; point_num < coordinate_array.length; point_num++) {
                     convertCoordinates(coordinate_array[point_num], radius, options);
                 }
-                this.drawLine(y_values, z_values, x_values, options);
+                this.drawLine(y_values, z_values, x_values, options, line_material);
             } else if (
                 json_geom[geom_num].type === 'MultiLineString' ||
                 json_geom[geom_num].type === 'Polygon'
@@ -64,7 +69,7 @@ export default class threeGeoJSON {
                     for (let point_num = 0; point_num < coordinate_array.length; point_num++) {
                         convertCoordinates(coordinate_array[point_num], radius, options);
                     }
-                    this.drawLine(y_values, z_values, x_values, options);
+                    this.drawLine(y_values, z_values, x_values, options, line_material);
                 }
             } else if (json_geom[geom_num].type === 'MultiPolygon') {
                 for (
@@ -84,7 +89,7 @@ export default class threeGeoJSON {
                         for (let point_num = 0; point_num < coordinate_array.length; point_num++) {
                             convertCoordinates(coordinate_array[point_num], radius, options);
                         }
-                        this.drawLine(y_values, z_values, x_values, options);
+                        this.drawLine(y_values, z_values, x_values, options, line_material);
                     }
                 }
             } else {
@@ -250,19 +255,16 @@ export default class threeGeoJSON {
         this.clearArrays();
     }
 
-    drawLine(x_values, y_values, z_values, options) {
+    drawLine(x_values, y_values, z_values, options, line_material) {
         // container
         let objEl = new THREE.Object3D();
 
         // lines
         let line_geom = new THREE.Geometry();
         this.createVertexForEachPoint(line_geom, x_values, y_values, z_values);
-        let line_material = new THREE.LineBasicMaterial({
-            color: options.color || 'red',
-        });
 
         let line = new THREE.Line(line_geom, line_material);
-
+        line.name = options.name || '';
         objEl.add(line);
 
         // mesh

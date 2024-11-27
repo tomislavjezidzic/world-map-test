@@ -40,6 +40,8 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
     const $scene = useRef(null);
     const $pointGroups = useRef([]);
     const $controls = useRef(null);
+    const $continent = useRef(null);
+    const $graticule = useRef(null);
     const $camera = useRef(null);
     const $renderer = useRef(null);
     const $lineObjs = useRef([null]);
@@ -88,7 +90,7 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                 once: true,
                 onEnter: () => {
                     if (!isFlat) {
-                        gsap.timeline({})
+                        gsap.timeline()
                             .add('start')
                             .from(
                                 $scene.current.rotation,
@@ -133,6 +135,20 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                                     ease: 'none',
                                 },
                                 'start+=0.5'
+                            );
+                    } else {
+                        gsap.timeline()
+                            .to($continent?.current?.material, {
+                                opacity: 1,
+                                ease: 'none',
+                            })
+                            .to(
+                                $graticule?.current?.material,
+                                {
+                                    opacity: 1,
+                                    ease: 'none',
+                                },
+                                '-=0.1'
                             );
                     }
 
@@ -304,13 +320,21 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                 color: 0x3fdbed,
                 width: $w.current,
                 height: $h.current,
+                name: 'continent',
             });
 
             $threeGeoJSON.current.drawThreeGeo(graticules, null, 'plane', {
                 color: 0x575654,
                 width: $w.current,
                 height: $h.current,
+                name: 'graticule',
             });
+
+            $continent.current = $scene.current.getObjectByName('continent');
+            $graticule.current = $scene.current.getObjectByName('graticule');
+            $continent.current.material.transparent = $graticule.current.material.transparent =
+                true;
+            $continent.current.material.opacity = $graticule.current.material.opacity = 0;
         }
 
         continentData.features.forEach((feature: any) => {
