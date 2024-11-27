@@ -13,9 +13,14 @@
     left: 0;
     top: 0;
 
-    :global(.is-right) & {
+    .isRight & {
         left: auto;
         right: 0;
+    }
+
+    .isBottom & {
+        top: auto;
+        bottom: 0;
     }
 }
 
@@ -29,9 +34,14 @@
     z-index: 1;
     cursor: pointer;
 
-    :global(.is-right) & {
+    .isRight & {
         left: auto;
         right: 0;
+    }
+
+    .isBottom & {
+        top: auto;
+        bottom: 0;
     }
 
     &:after,

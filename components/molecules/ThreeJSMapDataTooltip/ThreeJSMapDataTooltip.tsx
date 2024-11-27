@@ -1,13 +1,18 @@
 import styles from './ThreeJSMapDataTooltip.module.scss';
 import cn from 'classnames';
 import { useGSAP } from '@gsap/react';
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 
 interface ThreeJSMapDataTooltipProps {
     isActive: boolean;
     isFlat?: boolean;
+    isLoaded?: boolean;
     name?: string;
+    canvasDimensions?: {
+        width: number;
+        height: number;
+    };
     data?: {
         countries?: string[];
         humans?: string;
@@ -20,11 +25,16 @@ interface ThreeJSMapDataTooltipProps {
 const ThreeJSMapDataTooltip = ({
     isActive = false,
     isFlat = false,
+    isLoaded = false,
+    canvasDimensions,
     data = null,
     name,
 }: ThreeJSMapDataTooltipProps) => {
+    const $mainWrapper = useRef(null);
     const $content = useRef(null);
     const $texts = useRef([null]);
+    const [isRight, setIsRight] = useState(false);
+    const [isBottom, setIsBottom] = useState(false);
 
     const open = useCallback(() => {
         let height = 0;
@@ -83,8 +93,30 @@ const ThreeJSMapDataTooltip = ({
         [$texts]
     );
 
+    useEffect(() => {
+        if (isFlat && isLoaded) {
+            const box = $mainWrapper?.current.getBoundingClientRect();
+            if (box.x > canvasDimensions.width / 2) {
+                setIsRight(true);
+            }
+
+            if (box.y > canvasDimensions.height / 2) {
+                console.log(box.y, canvasDimensions.height / 2);
+                setIsBottom(true);
+            }
+        }
+
+        console.log(isBottom);
+    }, [isFlat, canvasDimensions, isLoaded]);
+
     return (
-        <div className={cn(styles.wrapper)}>
+        <div
+            ref={$mainWrapper}
+            className={cn(styles.wrapper, {
+                [styles.isRight]: isRight,
+                [styles.isBottom]: isBottom,
+            })}
+        >
             <div className={styles.main}>
                 <div
                     className={cn(styles.marker, {

@@ -15,6 +15,7 @@ import graticules from './data/graticules.json';
 import * as d3 from 'd3';
 import { useGSAP } from '@gsap/react';
 import ThreeJSMapDataTooltip from '@molecules/ThreeJSMapDataTooltip';
+import cn from 'classnames';
 
 if (typeof window !== 'undefined') {
     gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -50,6 +51,7 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
     const $raycaster = useRef(new THREE.Raycaster());
     const $labels = useRef([]);
     const [activePoint, setActivePoint] = useState(null);
+    const [labelsLoaded, setLabelsLoaded] = useState(false);
     const $threeGeoJSON = useRef(null);
 
     // useEffect(() => {
@@ -161,13 +163,9 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                         });
                     });
 
-                    $labels.current.forEach(label => {
-                        if (label.element.getBoundingClientRect().x > $w.current / 2 && isFlat)
-                            label.element.classList.add('is-right');
-                        setTimeout(() => {
-                            label.element.classList.add('is-loaded');
-                        }, 1000);
-                    });
+                    setTimeout(() => {
+                        setLabelsLoaded(true);
+                    }, 1000);
                 },
             });
         }
@@ -428,10 +426,22 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
     );
 
     const Globe = useCallback(() => {
-        $w.current = $globeRef.current.offsetWidth || window.innerWidth;
-        $h.current = $globeRef.current.offsetHeight || window.innerHeight;
+        $w.current = $globeRef.current.offsetWidth;
+        $h.current = $globeRef.current.offsetHeight;
 
-        $camera.current = new THREE.PerspectiveCamera(30, $w.current / $h.current, 1, 10000);
+        if (isFlat) {
+            $camera.current = new THREE.OrthographicCamera(
+                $w.current / -4,
+                $w.current / 4,
+                $h.current / 4,
+                $h.current / -4,
+                1,
+                1200
+            );
+        } else {
+            $camera.current = new THREE.PerspectiveCamera(30, $w.current / $h.current, 1, 1200);
+        }
+
         $camera.current.position.z = 1100;
         $camera.current.position.y = !isFlat ? 200 : 0;
 
@@ -535,13 +545,21 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                     if (feature.pointCoordinates) {
                         return (
                             <div
+                                className={cn(styles.marker, {
+                                    [styles.isActive]: activePoint === i,
+                                    [styles.isLoaded]: labelsLoaded,
+                                })}
                                 key={i}
-                                className={styles.marker}
                                 id={`${feature.id}-marker`}
                                 onClick={() => handleClick(feature.pointCoordinates, i)}
                             >
                                 <ThreeJSMapDataTooltip
+                                    canvasDimensions={{
+                                        width: $w.current,
+                                        height: $h.current,
+                                    }}
                                     isFlat={isFlat}
+                                    isLoaded={labelsLoaded}
                                     name={feature.properties.name}
                                     isActive={activePoint === i}
                                     data={continentsData.find(data => data.id === feature.id)}

@@ -237,9 +237,7 @@ export default class threeGeoJSON {
         let lon = coordinates_array[0];
         let lat = coordinates_array[1];
 
-        // z_values.push((lat / 180) * radius);
         z_values.push(lat * (options.height / 2 / 180.0));
-        // y_values.push((lon / 180) * radius);
         y_values.push(lon * (options.width / 2 / 360.0));
     }
 
