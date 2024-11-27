@@ -231,8 +231,6 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
     useEffect(() => {
         if (!citiesData || citiesData?.length < 1) return;
 
-        console.log(citiesData?.length);
-
         const root = am5.Root.new($globe.current);
 
         root.fps = 60;

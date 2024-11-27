@@ -72,6 +72,16 @@
             transition: transform 0.5s 1s;
             transform: translate(-50%, -50%) rotate(45deg);
         }
+
+        &.isFlat{
+            &:before {
+                transition: transform 0.5s;
+            }
+
+            &:after {
+                transition: transform 0.5s;
+            }
+        }
     }
 }
 

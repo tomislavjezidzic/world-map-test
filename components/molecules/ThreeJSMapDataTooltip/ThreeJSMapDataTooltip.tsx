@@ -118,6 +118,7 @@ const ThreeJSMapDataTooltip = ({
                 <div
                     className={cn(styles.marker, {
                         [styles.isActive]: isActive,
+                        [styles.isFlat]: isFlat,
                     })}
                 ></div>
 

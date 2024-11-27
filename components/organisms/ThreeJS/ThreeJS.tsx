@@ -420,7 +420,7 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
             $controls.current.addEventListener('end', debouncedHandleGlobeRotationEnd, false);
         }
         return () => {
-            $controls.current.removeEventListener('end', debouncedHandleGlobeRotationEnd, false);
+            $controls?.current?.removeEventListener('end', debouncedHandleGlobeRotationEnd, false);
         };
     }, [$controls.current]);
 
