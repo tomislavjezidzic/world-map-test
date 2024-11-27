@@ -3,7 +3,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import locationsData from '@public/share_my_GPS_timeline_since_may_2024-reduced.json';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { GeoJsonGeometry } from 'three-geojson-geometry';
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer';
 import threeGeoJSON from './threeGeoJSON';
@@ -91,18 +90,17 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                 end: 'bottom center',
                 once: true,
                 onEnter: () => {
+                    const tl = gsap.timeline().add('start');
                     if (!isFlat) {
-                        gsap.timeline()
-                            .add('start')
-                            .from(
-                                $scene.current.rotation,
-                                {
-                                    y: -Math.PI / 2,
-                                    duration: 3,
-                                    ease: 'power4.out',
-                                },
-                                'start'
-                            )
+                        tl.from(
+                            $scene.current.rotation,
+                            {
+                                y: -Math.PI / 2,
+                                duration: 3,
+                                ease: 'power4.out',
+                            },
+                            'start'
+                        )
                             .from(
                                 $scene.current.scale,
                                 {
@@ -121,38 +119,24 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                                     ease: 'none',
                                 },
                                 'start'
-                            )
-                            .to(
-                                $lineObjs?.current[0]?.material,
-                                {
-                                    opacity: 1,
-                                    ease: 'none',
-                                },
-                                'start'
-                            )
-                            .to(
-                                $lineObjs?.current[1]?.material,
-                                {
-                                    opacity: 1,
-                                    ease: 'none',
-                                },
-                                'start+=0.5'
-                            );
-                    } else {
-                        gsap.timeline()
-                            .to($continent?.current?.material, {
-                                opacity: 1,
-                                ease: 'none',
-                            })
-                            .to(
-                                $graticule?.current?.material,
-                                {
-                                    opacity: 1,
-                                    ease: 'none',
-                                },
-                                '-=0.1'
                             );
                     }
+
+                    tl.to(
+                        $continent?.current?.material,
+                        {
+                            opacity: 1,
+                            ease: 'none',
+                        },
+                        'start'
+                    ).to(
+                        $graticule?.current?.material,
+                        {
+                            opacity: 1,
+                            ease: 'none',
+                        },
+                        'start-=0.1'
+                    );
 
                     $pointGroups.current.forEach((group, index) => {
                         gsap.to(group.material, {
@@ -185,7 +169,7 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
             return { x: x, y: y, z: 0 };
         } else {
             const phi = ((90 - lat) * Math.PI) / 180;
-            const theta = ((180 - lng) * Math.PI) / 180;
+            const theta = ((180 - lng) * Math.PI) / 180 - Math.PI / 2;
 
             return {
                 x: 200 * Math.sin(phi) * Math.cos(theta),
@@ -292,64 +276,36 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
     }, []);
 
     const createContinents = useCallback(() => {
-        if (!isFlat) {
-            $lineObjs.current = [
-                new THREE.LineSegments(
-                    new GeoJsonGeometry(d3.geoGraticule10(), 199.5),
-                    new THREE.LineBasicMaterial({
-                        color: 0x575654,
-                        side: THREE.BackSide,
-                        transparent: true,
-                        opacity: 0,
-                    })
-                ),
-            ];
-        }
-
-        let material = null;
-
-        if (!isFlat) {
-            material = new THREE.LineBasicMaterial({
-                color: 0x3fdbed,
-                side: THREE.BackSide,
-                transparent: true,
-                opacity: 0,
-            });
-        } else {
-            $threeGeoJSON.current.drawThreeGeo(continentData, null, 'plane', {
+        $threeGeoJSON.current.drawThreeGeo(
+            continentData,
+            isFlat ? null : 200,
+            isFlat ? 'plane' : 'sphere',
+            {
                 color: 0x3fdbed,
                 width: $w.current,
                 height: $h.current,
                 name: 'continent',
-            });
+            }
+        );
 
-            $threeGeoJSON.current.drawThreeGeo(graticules, null, 'plane', {
+        $threeGeoJSON.current.drawThreeGeo(
+            graticules,
+            isFlat ? null : 200,
+            isFlat ? 'plane' : 'sphere',
+            {
                 color: 0x575654,
                 width: $w.current,
                 height: $h.current,
                 name: 'graticule',
-            });
+            }
+        );
 
-            $continent.current = $scene.current.getObjectByName('continent');
-            $graticule.current = $scene.current.getObjectByName('graticule');
-            $continent.current.material.transparent = $graticule.current.material.transparent =
-                true;
-            $continent.current.material.opacity = $graticule.current.material.opacity = 0;
-        }
+        $continent.current = $scene.current.getObjectByName('continent');
+        $graticule.current = $scene.current.getObjectByName('graticule');
+        $continent.current.material.transparent = $graticule.current.material.transparent = true;
+        $continent.current.material.opacity = $graticule.current.material.opacity = 0;
 
         continentData.features.forEach((feature: any) => {
-            if (!isFlat) {
-                const continent = new THREE.LineSegments(
-                    new GeoJsonGeometry(feature.geometry, 199),
-                    material
-                );
-
-                continent.name = feature.id;
-                continent.rotation.y = -Math.PI / 2;
-
-                $lineObjs.current.push(continent);
-            }
-
             if (feature.pointCoordinates) {
                 const { x, y, z } = getCoordinates(
                     isFlat ? feature.pointCoordinates[1] - 90 : feature.pointCoordinates[1],
@@ -407,8 +363,8 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                     maxPolarAngle: Math.PI / 2 + beta,
                 },
                 {
-                    minAzimuthAngle: lat - Math.PI / 2,
-                    maxAzimuthAngle: lat - Math.PI / 2,
+                    minAzimuthAngle: lat,
+                    maxAzimuthAngle: lat,
                     minPolarAngle: Math.PI / 2 - lng,
                     maxPolarAngle: Math.PI / 2 - lng,
                     duration: 1,
@@ -439,7 +395,7 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                 1200
             );
         } else {
-            $camera.current = new THREE.PerspectiveCamera(30, $w.current / $h.current, 1, 1200);
+            $camera.current = new THREE.PerspectiveCamera(30, $w.current / $h.current, 1, 5000);
         }
 
         $camera.current.position.z = 1100;

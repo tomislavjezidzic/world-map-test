@@ -275,6 +275,7 @@ export default class threeGeoJSON {
         });
         let mesh = new THREE.Mesh(mesh_geom, mesh_material);
 
+
         objEl.add(mesh);
         this.scene.add(objEl);
         this.clearArrays();
