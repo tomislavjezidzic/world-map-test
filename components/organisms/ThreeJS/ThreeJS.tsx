@@ -35,6 +35,7 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
     const $globeRef = useRef<HTMLDivElement>(null);
     const $w = useRef(null);
     const $h = useRef(null);
+    const $pi = useRef(Math.PI);
     const $point = useRef(null);
     const $scene = useRef(null);
     const $pointGroups = useRef([]);
@@ -110,7 +111,7 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                         tl.from(
                             $scene.current.rotation,
                             {
-                                y: -Math.PI / 2,
+                                y: -$pi.current / 2,
                                 duration: 3,
                                 ease: 'power4.out',
                             },
@@ -183,8 +184,8 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
 
             return { x: x, y: y, z: 0 };
         } else {
-            const phi = ((90 - lat) * Math.PI) / 180;
-            const theta = ((180 - lng) * Math.PI) / 180 - Math.PI / 2;
+            const phi = ((90 - lat) * $pi.current) / 180;
+            const theta = ((180 - lng) * $pi.current) / 180 - $pi.current / 2;
 
             return {
                 x: 200 * Math.sin(phi) * Math.cos(theta),
@@ -345,7 +346,7 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
 
     const handleClick = useCallback(
         (coordinates: number[], index: number | null) => {
-            const lat = coordinates[0] * (Math.PI / 180);
+            const lat = coordinates[0] * ($pi.current / 180);
             let lng = 0;
             let delay = 0;
 
@@ -357,7 +358,7 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                 $activePoint.current = null;
                 !isFlat && ($controls.current.autoRotate = true);
             } else if (index != null) {
-                lng = coordinates[1] * (Math.PI / 180);
+                lng = coordinates[1] * ($pi.current / 180);
                 setActivePoint(index);
                 $activePoint.current = index;
                 !isFlat && ($controls.current.autoRotate = false);
@@ -369,31 +370,38 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
             if (isFlat) return;
 
             const alpha = $controls.current.getAzimuthalAngle();
-            const beta = $controls.current.getPolarAngle() - Math.PI / 2;
+            const beta = $controls.current.getPolarAngle() - $pi.current / 2;
 
-            let x = Math.PI / 2 - lng;
-            let y = lat;
+            let x = $pi.current / 2 - lng;
 
             gsap.fromTo(
                 $controls.current,
                 {
                     minAzimuthAngle: alpha,
                     maxAzimuthAngle: alpha,
-                    minPolarAngle: Math.PI / 2 + beta,
-                    maxPolarAngle: Math.PI / 2 + beta,
+                    minPolarAngle: $pi.current / 2 + beta,
+                    maxPolarAngle: $pi.current / 2 + beta,
                 },
                 {
-                    minAzimuthAngle: index === null ? alpha : y,
-                    maxAzimuthAngle: index === null ? alpha : y,
-                    minPolarAngle: isMobile ? (index === null ? x : x + 1) : x,
-                    maxPolarAngle: isMobile ? (index === null ? x : x + 1) : x,
+                    minAzimuthAngle: index === null ? alpha : lat,
+                    maxAzimuthAngle: index === null ? alpha : lat,
+                    minPolarAngle: isMobile
+                        ? index === null || index === activePoint
+                            ? $pi.current / 2
+                            : x + 1
+                        : x,
+                    maxPolarAngle: isMobile
+                        ? index === null || index === activePoint
+                            ? $pi.current / 2
+                            : x + 1
+                        : x,
                     duration: 1,
                     delay: delay,
                     onComplete: () => {
                         $controls.current.minAzimuthAngle = -Infinity;
                         $controls.current.maxAzimuthAngle = Infinity;
                         $controls.current.minPolarAngle = 0;
-                        $controls.current.maxPolarAngle = Math.PI;
+                        $controls.current.maxPolarAngle = $pi.current;
                     },
                 }
             );
@@ -413,23 +421,24 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
 
     const handleGlobeRotationEnd = useCallback(
         (event: any) => {
+            return;
             if ($activePoint.current !== null) return;
-            const beta = $controls.current.getPolarAngle() - Math.PI / 2;
+            const beta = $controls.current.getPolarAngle() - $pi.current / 2;
 
             gsap.fromTo(
                 $controls.current,
                 {
-                    minPolarAngle: Math.PI / 2 + beta,
-                    maxPolarAngle: Math.PI / 2 + beta,
+                    minPolarAngle: $pi.current / 2 + beta,
+                    maxPolarAngle: $pi.current / 2 + beta,
                 },
                 {
-                    minPolarAngle: Math.PI / 2,
-                    maxPolarAngle: Math.PI / 2,
+                    minPolarAngle: $pi.current / 2,
+                    maxPolarAngle: $pi.current / 2,
                     duration: 1,
                     ease: 'power3.out',
                     onComplete: () => {
                         $controls.current.minPolarAngle = 0;
-                        $controls.current.maxPolarAngle = Math.PI;
+                        $controls.current.maxPolarAngle = $pi.current;
                     },
                 }
             );
@@ -461,10 +470,10 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                 1200
             );
         } else {
-            $camera.current = new THREE.PerspectiveCamera(30, $w.current / $h.current, 1, 1200);
+            $camera.current = new THREE.PerspectiveCamera(30, $w.current / $h.current, 1, 1100);
         }
 
-        $camera.current.position.z = 1100;
+        $camera.current.position.z = 1000;
 
         $scene.current = new THREE.Scene();
 
@@ -478,7 +487,7 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
             });
 
             $mesh.current = new THREE.Mesh(geometry, material);
-            $mesh.current.rotation.y = Math.PI;
+            $mesh.current.rotation.y = $pi.current;
             $scene.current.add($mesh.current);
         }
 
