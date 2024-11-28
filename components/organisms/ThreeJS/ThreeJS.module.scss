@@ -45,12 +45,13 @@
     box-shadow: none;
     cursor: pointer;
     color: inherit;
-    width: auto;
-    height: auto;
+    width: 24px;
+    height: 24px;
     background: transparent;
     opacity: 0;
     transition: opacity 0.2s;
     pointer-events: all;
+    touch-action: auto;
 
     &.isLoaded {
         transition: opacity 0.4s;

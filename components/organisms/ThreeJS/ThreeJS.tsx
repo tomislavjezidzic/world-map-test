@@ -62,9 +62,9 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
     const $labels = useRef([]);
     const [activePoint, setActivePoint] = useState(null);
     const [labelsLoaded, setLabelsLoaded] = useState(false);
-    const [touchPosition, setTouchPosition] = useState(null);
-    const [prevTouchPosition, setPrevTouchPosition] = useState(null);
     const $threeGeoJSON = useRef(null);
+    const $activePoint = useRef(null);
+    const [touchStart, setTouchStart] = useState(null);
 
     // useEffect(() => {
     //     setTimeout(() => {
@@ -352,10 +352,12 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                 (index === null && activePoint != null)
             ) {
                 setActivePoint(null);
+                $activePoint.current = null;
                 !isFlat && ($controls.current.autoRotate = true);
             } else if (index != null) {
                 lng = coordinates[1] * (Math.PI / 180);
                 setActivePoint(index);
+                $activePoint.current = index;
                 !isFlat && ($controls.current.autoRotate = false);
                 activePoint ? (delay = 0.5) : (delay = 0);
             } else {
@@ -376,8 +378,8 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                     maxPolarAngle: Math.PI / 2 + beta,
                 },
                 {
-                    minAzimuthAngle: lat,
-                    maxAzimuthAngle: lat,
+                    minAzimuthAngle: index === null ? alpha : lat,
+                    maxAzimuthAngle: index === null ? alpha : lat,
                     minPolarAngle: Math.PI / 2 - lng,
                     maxPolarAngle: Math.PI / 2 - lng,
                     duration: 1,
@@ -406,7 +408,7 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
 
     const handleGlobeRotationEnd = useCallback(
         (event: any) => {
-            if (activePoint !== null) return;
+            if ($activePoint.current !== null) return;
             const beta = $controls.current.getPolarAngle() - Math.PI / 2;
 
             gsap.fromTo(
@@ -421,13 +423,13 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                     duration: 1,
                     ease: 'power3.out',
                     onComplete: () => {
-                        $controls.current.minPolarAngle = 1;
-                        $controls.current.maxPolarAngle = Math.PI * 0.7;
+                        $controls.current.minPolarAngle = 0;
+                        $controls.current.maxPolarAngle = Math.PI;
                     },
                 }
             );
         },
-        [activePoint]
+        [$activePoint.current]
     );
 
     useEffect(() => {
@@ -511,8 +513,6 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
             $controls.current.autoRotateSpeed = 0.3;
             $controls.current.enableZoom = false;
             $controls.current.enablePan = false;
-            $controls.current.minPolarAngle = Math.PI / 2;
-            $controls.current.maxPolarAngle = Math.PI / 2;
             $controls.current.dampingFactor = 0.05;
             $controls.current.screenSpacePanning = false;
         }
@@ -548,27 +548,8 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
         animate();
     }, []);
 
-    useEffect(() => {
-        if (prevTouchPosition !== null && touchPosition !== null) {
-            let offset = prevTouchPosition - touchPosition;
-
-            window.scrollTo(0, window.scrollY + offset);
-        }
-
-        setPrevTouchPosition(touchPosition);
-    }, [touchPosition, prevTouchPosition]);
-
     return (
-        <div
-            className={styles.main}
-            onTouchMoveCapture={useCallback(ev => {
-                setTouchPosition(ev.changedTouches[0].screenY);
-            }, [])}
-            onTouchEnd={() => {
-                setTouchPosition(null);
-                setPrevTouchPosition(null);
-            }}
-        >
+        <div className={styles.main}>
             <div
                 className={styles.canvas}
                 ref={$globeRef}
@@ -581,6 +562,7 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                     if (feature.pointCoordinates) {
                         return (
                             <button
+                                type="button"
                                 className={cn(styles.marker, {
                                     [styles.isActive]: activePoint === i,
                                     [styles.isLoaded]: labelsLoaded,
@@ -588,8 +570,14 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                                 key={`continent-marker-${i}`}
                                 id={`${feature.id}-marker`}
                                 onClick={() => handleClick(feature.pointCoordinates, i)}
-                                type="button"
-                                onTouchEnd={() => handleClick(feature.pointCoordinates, i)}
+                                onTouchEnd={() => {
+                                    if (new Date() - touchStart <= 300) {
+                                        handleClick(feature.pointCoordinates, i);
+                                    }
+                                }}
+                                onTouchStart={() => {
+                                    setTouchStart(new Date());
+                                }}
                             >
                                 <ThreeJSMapDataTooltip
                                     canvasDimensions={{
