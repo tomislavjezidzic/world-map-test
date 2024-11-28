@@ -421,7 +421,6 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
 
     const handleGlobeRotationEnd = useCallback(
         (event: any) => {
-            return;
             if ($activePoint.current !== null) return;
             const beta = $controls.current.getPolarAngle() - $pi.current / 2;
 
@@ -434,8 +433,8 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                 {
                     minPolarAngle: $pi.current / 2,
                     maxPolarAngle: $pi.current / 2,
-                    duration: 1,
-                    ease: 'power3.out',
+                    duration: 0.5,
+                    ease: 'power4.out',
                     onComplete: () => {
                         $controls.current.minPolarAngle = 0;
                         $controls.current.maxPolarAngle = $pi.current;
