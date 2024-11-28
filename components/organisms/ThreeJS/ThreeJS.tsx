@@ -6,6 +6,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer';
 import threeGeoJSON from './threeGeoJSON';
+import mapLinesSvg from '@public/images/lines.png';
 
 import gsap from 'gsap';
 import continentData from './data/continents.json';
@@ -14,6 +15,7 @@ import graticules from './data/graticules.json';
 import { useGSAP } from '@gsap/react';
 import ThreeJSMapDataTooltip from '@molecules/ThreeJSMapDataTooltip';
 import cn from 'classnames';
+import Image from 'next/image';
 
 if (typeof window !== 'undefined') {
     gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -304,22 +306,22 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
             }
         );
 
-        $threeGeoJSON.current.drawThreeGeo(
-            graticules,
-            isFlat ? null : 200,
-            isFlat ? 'plane' : 'sphere',
-            {
+        if (!isFlat) {
+            $threeGeoJSON.current.drawThreeGeo(graticules, 200, 'sphere', {
                 color: 0x575654,
                 width: $w.current,
                 height: $h.current,
                 name: 'graticule',
-            }
-        );
+            });
+
+            $graticule.current = $scene.current.getObjectByName('graticule');
+            $graticule.current.material.transparent = true;
+            $graticule.current.material.opacity = 0;
+        }
 
         $continent.current = $scene.current.getObjectByName('continent');
-        $graticule.current = $scene.current.getObjectByName('graticule');
-        $continent.current.material.transparent = $graticule.current.material.transparent = true;
-        $continent.current.material.opacity = $graticule.current.material.opacity = 0;
+        $continent.current.material.transparent = true;
+        $continent.current.material.opacity = 0;
 
         continentData.features.forEach((feature: any) => {
             if (feature.pointCoordinates) {
@@ -562,7 +564,11 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
     }, []);
 
     return (
-        <div className={styles.main}>
+        <div
+            className={cn(styles.main, {
+                [styles.isFlat]: isFlat,
+            })}
+        >
             <h1>{isMobile ? 'mobile' : 'not mobile'}</h1>
             <div
                 className={styles.canvas}
@@ -571,7 +577,13 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                 onTouchEnd={() => {
                     handleClick([0, 0], null);
                 }}
-            ></div>
+            >
+                {isFlat && (
+                    <div className={styles.linesImg}>
+                        <Image src={mapLinesSvg} alt="map lines" />
+                    </div>
+                )}
+            </div>
 
             <div className={styles.markers}>
                 {continentData.features.map((feature, i) => {

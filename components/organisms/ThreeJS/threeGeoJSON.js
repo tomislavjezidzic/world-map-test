@@ -105,12 +105,7 @@ export default class threeGeoJSON {
             geometry_array.push(json.geometry);
         } else if (json.type === 'FeatureCollection') {
             for (let feature_num = 0; feature_num < json.features.length; feature_num++) {
-                if (
-                    (shape === 'plane' && json.features[feature_num].id !== 'antarctica') ||
-                    shape === 'sphere'
-                ) {
-                    geometry_array.push(json.features[feature_num].geometry);
-                }
+                geometry_array.push(json.features[feature_num].geometry);
             }
         } else if (json.type === 'GeometryCollection') {
             for (let geom_num = 0; geom_num < json.geometries.length; geom_num++) {
@@ -274,7 +269,6 @@ export default class threeGeoJSON {
             side: THREE.DoubleSide,
         });
         let mesh = new THREE.Mesh(mesh_geom, mesh_material);
-
 
         objEl.add(mesh);
         this.scene.add(objEl);
