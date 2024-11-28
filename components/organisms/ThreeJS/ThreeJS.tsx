@@ -448,7 +448,7 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
     );
 
     useEffect(() => {
-        const debouncedHandleGlobeRotationEnd = debounce(handleGlobeRotationEnd, 3000);
+        const debouncedHandleGlobeRotationEnd = debounce(handleGlobeRotationEnd, 1000);
         if ($controls.current) {
             $controls.current.addEventListener('end', debouncedHandleGlobeRotationEnd, false);
         }
