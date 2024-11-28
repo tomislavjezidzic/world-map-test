@@ -18,22 +18,6 @@ const Navigation = ({}: NavigationProps) => {
                                 <ul className={styles.navigationList}>
                                     <li
                                         className={cn(styles.navigationItem, {
-                                            [styles.isActive]: pathname === '/',
-                                        })}
-                                    >
-                                        <Link href="/">Home</Link>
-                                    </li>
-
-                                    <li
-                                        className={cn(styles.navigationItem, {
-                                            [styles.isActive]: pathname === '/3d-example',
-                                        })}
-                                    >
-                                        <Link href="/3d-example">3D Example</Link>
-                                    </li>
-
-                                    <li
-                                        className={cn(styles.navigationItem, {
                                             [styles.isActive]: pathname === '/flat-example',
                                         })}
                                     >

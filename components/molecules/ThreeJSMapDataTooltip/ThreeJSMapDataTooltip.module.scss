@@ -72,7 +72,7 @@
             transform: translate(-50%, -50%) rotate(45deg);
         }
 
-        &.isFlat{
+        &.isFlat {
             &:before {
                 transition: transform 0.5s;
             }
@@ -91,6 +91,12 @@
     width: 100%;
     height: 0;
     overflow: hidden;
+
+    @include mq(md) {
+        max-width: 290px;
+        left: 50%;
+        transform: translateX(-133px);
+    }
 }
 
 .contentInner {
@@ -98,6 +104,10 @@
     padding: 32px 24px 24px;
     width: 320px;
     white-space: normal;
+
+    @include mq(md) {
+        width: 290px;
+    }
 
     ul {
     }
