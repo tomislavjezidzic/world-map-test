@@ -583,6 +583,15 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                         <Image src={mapLinesSvg} alt="map lines" />
                     </div>
                 )}
+
+                {!isFlat && (
+                    <div className={styles.scrollArea}>
+                        <i></i>
+                        <i></i>
+                        <i></i>
+                        <i></i>
+                    </div>
+                )}
             </div>
 
             <div className={styles.markers}>
