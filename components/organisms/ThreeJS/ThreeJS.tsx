@@ -102,6 +102,8 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
 
     useGSAP(() => {
         if ($globeRef.current) {
+            const fromColor = new THREE.Color(0x3fdbed);
+            const toColor = new THREE.Color(0xf9f9f8);
             ScrollTrigger.create({
                 trigger: $globeRef.current,
                 start: `top ${isMobile ? '50%' : '30%'}`,
@@ -156,12 +158,28 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                         'start-=0.1'
                     );
 
-                    $pointGroups.current.forEach((group, index) => {
+                    $pointGroups.current.reverse().forEach((group, index) => {
                         gsap.to(group.material, {
                             opacity: 1,
                             ease: 'none',
                             duration: 1,
                             delay: 1 + 0.7 * index,
+                        });
+
+                        gsap.to(fromColor, {
+                            r: toColor.r,
+                            g: toColor.g,
+                            b: toColor.b,
+                            ease: 'none',
+                            duration: 1,
+                            delay: 2 + 0.7 * index,
+                            onUpdate: () => {
+                                group.material.color = new THREE.Color(
+                                    fromColor.r,
+                                    fromColor.g,
+                                    fromColor.b
+                                );
+                            },
                         });
                     });
 
@@ -241,11 +259,12 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
         const points = new THREE.Mesh(
             subGeo,
             new THREE.MeshBasicMaterial({
-                color: new THREE.Color(0x3fdbba),
+                color: new THREE.Color(0x3fdbed),
                 side: isFlat ? THREE.FrontSide : THREE.BackSide,
                 transparent: true,
                 opacity: 0,
                 depthTest: !isFlat,
+                depthWrite: !isFlat,
             })
         );
 
@@ -385,8 +404,8 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                     maxPolarAngle: $pi.current / 2 + beta,
                 },
                 {
-                    minAzimuthAngle: index === null ? alpha : lat,
-                    maxAzimuthAngle: index === null ? alpha : lat,
+                    minAzimuthAngle: index === null ? alpha : lat + $pi.current / 2.3,
+                    maxAzimuthAngle: index === null ? alpha : lat + $pi.current / 2.3,
                     minPolarAngle: isMobile
                         ? index === null || index === activePoint
                             ? $pi.current / 2
