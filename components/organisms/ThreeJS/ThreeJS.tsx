@@ -57,6 +57,7 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
     const $activePoint = useRef(null);
     const [touchStart, setTouchStart] = useState(null);
     const [isMobile, setIsMobile] = useState(false);
+    const [markerClicked, setMarkerClicked] = useState(false);
 
     // useEffect(() => {
     //     setTimeout(() => {
@@ -419,6 +420,7 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                     duration: 1,
                     delay: delay,
                     onComplete: () => {
+                        setMarkerClicked(false);
                         $controls.current.minAzimuthAngle = -Infinity;
                         $controls.current.maxAzimuthAngle = Infinity;
                         $controls.current.minPolarAngle = 0;
@@ -427,7 +429,7 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                 }
             );
         },
-        [activePoint, isMobile]
+        [activePoint, isMobile, markerClicked]
     );
 
     const debounce = (func: any, wait: number) => {
@@ -589,12 +591,15 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                 [styles.isFlat]: isFlat,
             })}
         >
-            <h1>{isMobile ? 'mobile' : 'not mobile'}</h1>
             <div
                 className={styles.canvas}
                 ref={$globeRef}
-                onClick={() => handleClick([0, 0], null)}
+                onClick={() => {
+                    if (markerClicked) return;
+                    handleClick([0, 0], null);
+                }}
                 onTouchEnd={() => {
+                    if (markerClicked) return;
                     handleClick([0, 0], null);
                 }}
             >
@@ -626,10 +631,14 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                                 })}
                                 key={`continent-marker-${i}`}
                                 id={`${feature.id}-marker`}
-                                onClick={() => handleClick(feature.pointCoordinates, i)}
+                                onClick={() => {
+                                    if (markerClicked) return;
+                                    setMarkerClicked(true);
+                                    handleClick(feature.pointCoordinates, i);
+                                }}
                                 onTouchEnd={ev => {
                                     // @ts-ignore
-                                    if (new Date() - touchStart <= 300) {
+                                    if (new Date() - touchStart <= 300 && !markerClicked) {
                                         handleClick(feature.pointCoordinates, i);
                                     }
                                 }}
