@@ -488,7 +488,6 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
             });
 
             $mesh.current = new THREE.Mesh(geometry, material);
-            $mesh.current.rotation.y = $pi.current;
             $scene.current.add($mesh.current);
         }
 
@@ -530,6 +529,8 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
             $controls.current.enablePan = false;
             $controls.current.dampingFactor = 0.05;
             $controls.current.screenSpacePanning = false;
+
+            $scene.current.rotation.y = $pi.current / 2.3;
         }
 
         createContinents();
