@@ -396,6 +396,8 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
 
             let x = $pi.current / 2 - lng;
 
+            console.log(isMobile);
+
             gsap.fromTo(
                 $controls.current,
                 {
@@ -405,8 +407,21 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                     maxPolarAngle: $pi.current / 2 + beta,
                 },
                 {
-                    minAzimuthAngle: index === null ? alpha : lat + $pi.current / 2.3,
-                    maxAzimuthAngle: index === null ? alpha : lat + $pi.current / 2.3,
+                    // minAzimuthAngle: index === null ? alpha : lat + $pi.current / 2.3,
+                    // maxAzimuthAngle: index === null ? alpha : lat + $pi.current / 2.3,
+
+                    minAzimuthAngle:
+                        index === null
+                            ? alpha
+                            : isMobile
+                              ? 1 + lat + $pi.current / 2.3
+                              : lat + $pi.current / 2.3,
+                    maxAzimuthAngle:
+                        index === null
+                            ? alpha
+                            : isMobile
+                              ? 1 + lat + $pi.current / 2.3
+                              : lat + $pi.current / 2.3,
                     minPolarAngle: isMobile
                         ? index === null || index === activePoint
                             ? $pi.current / 2

@@ -92,10 +92,13 @@
     height: 0;
     overflow: hidden;
 
-    @include mq(md) {
+    @media only screen and (max-width: 800px) {
         max-width: 290px;
         left: 50%;
-        transform: translateX(-133px);
+    }
+
+    @media only screen and (max-width: 500px) {
+        max-width: 250px;
     }
 }
 
@@ -105,11 +108,12 @@
     width: 320px;
     white-space: normal;
 
-    @include mq(md) {
+    @media only screen and (max-width: 800px) {
         width: 290px;
     }
 
-    ul {
+    @media only screen and (max-width: 500px) {
+        max-width: 250px;
     }
 
     li {
@@ -120,6 +124,10 @@
         padding-bottom: 16px;
         border-top: 1px solid #575654;
 
+        @media only screen and (max-width: 500px) {
+            flex-direction: column;
+        }
+
         p {
             font-size: 12px;
             line-height: 1.4;
@@ -128,6 +136,10 @@
 
         span {
             font-size: 20px;
+        }
+
+        &:last-child {
+            padding-bottom: 0;
         }
     }
 }
