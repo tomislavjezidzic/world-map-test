@@ -396,8 +396,6 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
 
             let x = $pi.current / 2 - lng;
 
-            console.log(isMobile);
-
             gsap.fromTo(
                 $controls.current,
                 {
@@ -407,9 +405,6 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                     maxPolarAngle: $pi.current / 2 + beta,
                 },
                 {
-                    // minAzimuthAngle: index === null ? alpha : lat + $pi.current / 2.3,
-                    // maxAzimuthAngle: index === null ? alpha : lat + $pi.current / 2.3,
-
                     minAzimuthAngle:
                         index === null
                             ? alpha
@@ -535,7 +530,9 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
             antialias: true,
         });
 
-        $renderer.current.setPixelRatio(1.5);
+        $renderer.current.setPixelRatio(
+            window.devicePixelRatio > 1 ? Math.min(2.5, window.devicePixelRatio) : 1
+        );
 
         $renderer.current.setSize($w.current, $h.current);
 

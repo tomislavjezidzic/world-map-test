@@ -1,9 +1,10 @@
 import { GetStaticProps } from 'next';
 import Image from 'next/image';
 import aboveMapImage from '@public/images/above.jpg';
-import belowMapImage from '@public/images/below.jpg';
+import belowMapImage from '@public/images/below.png';
 import { useEffect } from 'react';
 import ThreeJS from '@organisms/ThreeJS';
+import CounterTestSection from '@organisms/CounterTestSection';
 
 interface ThreeJSExampleProps {}
 
@@ -111,6 +112,8 @@ const KeplerExamplePage = ({}: ThreeJSExampleProps) => {
                     },
                 ]}
             />
+
+            <CounterTestSection />
 
             <div>
                 <Image src={belowMapImage} alt="below" />

@@ -4,7 +4,7 @@
 $settings-typography: (
     'a5': (
         $breakpoint-sm: 35px,
-        $breakpoint-xl: 50px,
+        $breakpoint-xl: 60px,
     ),
     'a4': (
         $breakpoint-sm: 20px,
@@ -45,7 +45,7 @@ $settings-typography: (
     & {
         font-size: var(--a5);
         font-family: var(--font-main);
-        font-weight: 700;
+        font-weight: 400;
         line-height: 125%;
         letter-spacing: 0.02em;
     }
