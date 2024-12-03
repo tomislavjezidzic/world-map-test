@@ -97,7 +97,7 @@
         left: 50%;
     }
 
-    @media only screen and (max-width: 500px) {
+    @media only screen and (max-width: 380px) {
         max-width: 250px;
     }
 }
@@ -112,7 +112,7 @@
         width: 290px;
     }
 
-    @media only screen and (max-width: 500px) {
+    @media only screen and (max-width: 380px) {
         max-width: 250px;
     }
 
@@ -124,7 +124,7 @@
         padding-bottom: 16px;
         border-top: 1px solid #575654;
 
-        @media only screen and (max-width: 500px) {
+        @media only screen and (max-width: 380px) {
             flex-direction: column;
         }
 
