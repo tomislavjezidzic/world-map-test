@@ -26,17 +26,18 @@ const Counter = ({ children }: CounterProps) => {
             });
 
             const num = parseFloat($element.current.innerHTML.replace(/\,/g, ''));
-            $element.current.innerText = 0;
-
+            let startNum = 0;
             let increment = 1;
 
-            if (num > 10000) {
-                increment = num / 10000;
-            } else if (num > 1000) {
-                increment = num / 1000;
-            } else if (num > 100) {
-                increment = num / 100;
+            if (num > 999) {
+                increment = 10;
+                startNum = num - 999;
+            } else if (num > 99) {
+                increment = 5;
+                startNum = num - 99;
             }
+
+            $element.current.innerText = startNum;
 
             increment = Math.floor(increment);
 
@@ -51,7 +52,7 @@ const Counter = ({ children }: CounterProps) => {
                     });
 
                     gsap.to($element.current, {
-                        duration: 1.5,
+                        duration: 1,
                         innerText: num,
                         // snap: { innerText: increment },
                         modifiers: {
