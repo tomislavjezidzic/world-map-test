@@ -47,10 +47,11 @@ const Counter = ({ children }: CounterProps) => {
                 onEnter: () => {
                     gsap.to($element.current, {
                         autoAlpha: 1,
+                        duration: 1,
                     });
 
                     gsap.to($element.current, {
-                        duration: 2,
+                        duration: 1.5,
                         innerText: num,
                         // snap: { innerText: increment },
                         modifiers: {
