@@ -406,13 +406,13 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                 },
                 {
                     minAzimuthAngle:
-                        index === null
+                        index === null || index === activePoint
                             ? alpha
                             : isMobile
                               ? 1 + lat + $pi.current / 2.3
                               : lat + $pi.current / 2.3,
                     maxAzimuthAngle:
-                        index === null
+                        index === null || index === activePoint
                             ? alpha
                             : isMobile
                               ? 1 + lat + $pi.current / 2.3
@@ -652,6 +652,10 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                                     // @ts-ignore
                                     if (new Date() - touchStart <= 300 && !markerClicked) {
                                         handleClick(feature.pointCoordinates, i);
+                                    } else if (activePoint !== null && !markerClicked) {
+                                        setActivePoint(null);
+                                        $activePoint.current = null;
+                                        !isFlat && ($controls.current.autoRotate = true);
                                     }
                                 }}
                                 onTouchStart={() => {
