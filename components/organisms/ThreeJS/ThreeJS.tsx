@@ -409,14 +409,14 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
                         index === null || index === activePoint
                             ? alpha
                             : isMobile
-                              ? 1 + lat + $pi.current / 2.3
-                              : lat + $pi.current / 2.3,
+                              ? 1 + lat + $pi.current / 3
+                              : lat + $pi.current / 3,
                     maxAzimuthAngle:
                         index === null || index === activePoint
                             ? alpha
                             : isMobile
-                              ? 1 + lat + $pi.current / 2.3
-                              : lat + $pi.current / 2.3,
+                              ? 1 + lat + $pi.current / 3
+                              : lat + $pi.current / 3,
                     minPolarAngle: isMobile
                         ? index === null || index === activePoint
                             ? $pi.current / 2
@@ -563,7 +563,7 @@ const ThreeJS = ({ continentsData, isFlat = false }: ThreeJSProps) => {
             $controls.current.dampingFactor = 0.05;
             $controls.current.screenSpacePanning = false;
 
-            $scene.current.rotation.y = $pi.current / 2.3;
+            $scene.current.rotation.y = $pi.current / 3;
         }
 
         createContinents();
