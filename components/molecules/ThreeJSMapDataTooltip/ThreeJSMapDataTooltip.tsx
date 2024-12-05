@@ -23,12 +23,14 @@ const ThreeJSMapDataTooltip = ({
 }: ThreeJSMapDataTooltipProps) => {
     const $mainWrapper = useRef(null);
     const $content = useRef(null);
-    const $texts = useRef([null]);
+    const $textRefs = useRef<HTMLElement[]>([]);
 
-    const open = useCallback(() => {
+    const handleOpen = useCallback(() => {
+        if (!$content.current || !$textRefs.current) return;
+
         let height = 0;
 
-        gsap.set($texts.current, {
+        gsap.set($textRefs.current, {
             autoAlpha: 0,
         });
 
@@ -45,7 +47,7 @@ const ThreeJSMapDataTooltip = ({
                             height: height,
                         });
 
-                        gsap.to($texts.current, {
+                        gsap.to($textRefs.current, {
                             autoAlpha: 1,
                             stagger: 0.07,
                         });
@@ -55,12 +57,14 @@ const ThreeJSMapDataTooltip = ({
         });
     }, []);
 
-    const close = useCallback(() => {
+    const handleClose = useCallback(() => {
+        if (!$content.current || !$textRefs.current) return;
+
         gsap.to($content.current, {
             height: 0,
         });
 
-        gsap.to($texts.current, {
+        gsap.to($textRefs.current, {
             autoAlpha: 0,
         });
     }, []);
@@ -69,17 +73,19 @@ const ThreeJSMapDataTooltip = ({
         if (!$content.current) return;
 
         if (isActive) {
-            open();
+            handleOpen();
         } else {
-            close();
+            handleClose();
         }
     }, [isActive]);
 
     const setRef = useCallback(
         (el: HTMLElement, key: number) => {
-            void ($texts.current[key] = el);
+            if (!$textRefs.current) return;
+
+            void ($textRefs.current[key] = el);
         },
-        [$texts]
+        [$textRefs]
     );
 
     return (
