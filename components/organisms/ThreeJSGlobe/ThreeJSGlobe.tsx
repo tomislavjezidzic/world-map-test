@@ -39,13 +39,12 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
     const $scene = useRef(null);
     const $pointGroups = useRef([]);
     const $controls = useRef(null);
-    const $continent = useRef(null);
-    const $graticule = useRef(null);
+    const $continents = useRef(null);
+    const $graticules = useRef(null);
     const $camera = useRef(null);
     const $renderer = useRef(null);
-    const $lineObjs = useRef([null]);
     const $labelRenderer = useRef(null);
-    const $mesh = useRef(null);
+    const $sphere = useRef(null);
     const $raycaster = useRef(new THREE.Raycaster());
     const $labels = useRef([]);
     const [activePoint, setActivePoint] = useState(null);
@@ -129,7 +128,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
                             'start'
                         )
                         .to(
-                            $mesh?.current?.material,
+                            $sphere?.current?.material,
                             {
                                 opacity: 1,
                                 ease: 'none',
@@ -137,7 +136,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
                             'start'
                         )
                         .to(
-                            $continent?.current?.material,
+                            $continents?.current?.material,
                             {
                                 opacity: 1,
                                 ease: 'none',
@@ -145,7 +144,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
                             'start'
                         )
                         .to(
-                            $graticule?.current?.material,
+                            $graticules?.current?.material,
                             {
                                 opacity: 1,
                                 ease: 'none',
@@ -213,7 +212,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
             $point.current.position.y = y;
             $point.current.position.z = z;
 
-            $point.current.lookAt($mesh.current.position);
+            $point.current.lookAt($sphere.current.position);
 
             $point.current.updateMatrix();
 
@@ -263,7 +262,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
     const render = useCallback(() => {
         if (!$camera?.current) return;
 
-        $camera.current.lookAt($mesh.current.position);
+        $camera.current.lookAt($sphere.current.position);
 
         $labels.current.forEach(label => {
             label.getWorldPosition($raycaster.current.ray.origin);
@@ -274,7 +273,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
                 .normalize();
             $raycaster.current.ray.direction.set(rd.x, rd.y, rd.z);
 
-            const hits = $raycaster.current.intersectObjects([$mesh.current]);
+            const hits = $raycaster.current.intersectObjects([$sphere.current]);
 
             if (hits.length > 0 && !label.element.classList.contains('is-hidden')) {
                 label.element.classList.add('is-hidden');
@@ -312,13 +311,13 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
             name: 'graticule',
         });
 
-        $graticule.current = $scene.current.getObjectByName('graticule');
-        $graticule.current.material.transparent = true;
-        $graticule.current.material.opacity = 0;
+        $graticules.current = $scene.current.getObjectByName('graticule');
+        $graticules.current.material.transparent = true;
+        $graticules.current.material.opacity = 0;
 
-        $continent.current = $scene.current.getObjectByName('continent');
-        $continent.current.material.transparent = true;
-        $continent.current.material.opacity = 0;
+        $continents.current = $scene.current.getObjectByName('continent');
+        $continents.current.material.transparent = true;
+        $continents.current.material.opacity = 0;
 
         continentData.features.forEach((feature: any) => {
             if (feature.pointCoordinates) {
@@ -336,10 +335,6 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
 
                 $scene.current.add(label);
             }
-        });
-
-        $lineObjs.current.forEach(obj => {
-            if (obj) $scene.current.add(obj);
         });
     }, []);
 
@@ -481,8 +476,8 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
             opacity: 0,
         });
 
-        $mesh.current = new THREE.Mesh(geometry, material);
-        $scene.current.add($mesh.current);
+        $sphere.current = new THREE.Mesh(geometry, material);
+        $scene.current.add($sphere.current);
 
         const pointGeometry = new THREE.PlaneGeometry(1, 1);
         $point.current = new THREE.Mesh(pointGeometry);

@@ -15,10 +15,6 @@ interface CounterProps {
 const Counter = ({ children }: CounterProps) => {
     const $element = useRef(null);
 
-    const numberWithCommas = useCallback(x => {
-        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    }, []);
-
     useGSAP(() => {
         if ($element.current) {
             gsap.set($element.current, {
@@ -54,7 +50,6 @@ const Counter = ({ children }: CounterProps) => {
                     gsap.to($element.current, {
                         duration: 1,
                         innerText: num,
-                        // snap: { innerText: increment },
                         modifiers: {
                             innerText: function (innerText) {
                                 return gsap.utils
