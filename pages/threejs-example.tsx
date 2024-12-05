@@ -113,7 +113,7 @@ const KeplerExamplePage = ({}: ThreeJSExampleProps) => {
                 ]}
             />
 
-            <CounterTestSection />
+            {/*<CounterTestSection />*/}
 
             <div>
                 <Image src={belowMapImage} alt="below" />

@@ -14,6 +14,7 @@ import graticules from './data/graticules.json';
 import { useGSAP } from '@gsap/react';
 import ThreeJSMapDataTooltip from '@molecules/ThreeJSMapDataTooltip';
 import cn from 'classnames';
+import GlobeDataTestSection from '@organisms/GlobeDataTestSection';
 
 if (typeof window !== 'undefined') {
     gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -550,68 +551,72 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
     }, []);
 
     return (
-        <div className={styles.main}>
-            <div
-                className={styles.canvas}
-                ref={$globeRef}
-                onClick={() => {
-                    if (markerClicked) return;
-                    handleClick([0, 0], null);
-                }}
-                onTouchEnd={() => {
-                    if (markerClicked) return;
-                    handleClick([0, 0], null);
-                }}
-            >
-                <div className={styles.scrollArea}>
-                    <i></i>
-                    <i></i>
-                    <i></i>
-                    <i></i>
+        <div className={styles.wrapper}>
+            <div className={styles.main}>
+                <div
+                    className={styles.canvas}
+                    ref={$globeRef}
+                    onClick={() => {
+                        if (markerClicked) return;
+                        handleClick([0, 0], null);
+                    }}
+                    onTouchEnd={() => {
+                        if (markerClicked) return;
+                        handleClick([0, 0], null);
+                    }}
+                >
+                    <div className={styles.scrollArea}>
+                        <i></i>
+                        <i></i>
+                        <i></i>
+                        <i></i>
+                    </div>
+                </div>
+
+                <div className={styles.markers}>
+                    {continentData.features.map((feature, i) => {
+                        if (feature.pointCoordinates) {
+                            return (
+                                <button
+                                    type="button"
+                                    className={cn(styles.marker, {
+                                        [styles.isActive]: activePoint === i,
+                                        [styles.isLoaded]: labelsLoaded,
+                                    })}
+                                    key={`continent-marker-${i}`}
+                                    id={`${feature.id}-marker`}
+                                    onClick={() => {
+                                        if (markerClicked) return;
+                                        setMarkerClicked(true);
+                                        handleClick(feature.pointCoordinates, i);
+                                    }}
+                                    onTouchEnd={ev => {
+                                        // @ts-ignore
+                                        if (new Date() - touchStart <= 300 && !markerClicked) {
+                                            handleClick(feature.pointCoordinates, i);
+                                        } else if (activePoint !== null && !markerClicked) {
+                                            setActivePoint(null);
+                                            $activePoint.current = null;
+                                            $controls.current.autoRotate = true;
+                                        }
+                                    }}
+                                    onTouchStart={() => {
+                                        setTouchStart(new Date());
+                                    }}
+                                >
+                                    <ThreeJSMapDataTooltip
+                                        name={feature.properties.name}
+                                        isActive={activePoint === i}
+                                        data={continentsData.find(data => data.id === feature.id)}
+                                    />
+                                </button>
+                            );
+                        }
+                    })}
                 </div>
             </div>
 
-            <div className={styles.markers}>
-                {continentData.features.map((feature, i) => {
-                    if (feature.pointCoordinates) {
-                        return (
-                            <button
-                                type="button"
-                                className={cn(styles.marker, {
-                                    [styles.isActive]: activePoint === i,
-                                    [styles.isLoaded]: labelsLoaded,
-                                })}
-                                key={`continent-marker-${i}`}
-                                id={`${feature.id}-marker`}
-                                onClick={() => {
-                                    if (markerClicked) return;
-                                    setMarkerClicked(true);
-                                    handleClick(feature.pointCoordinates, i);
-                                }}
-                                onTouchEnd={ev => {
-                                    // @ts-ignore
-                                    if (new Date() - touchStart <= 300 && !markerClicked) {
-                                        handleClick(feature.pointCoordinates, i);
-                                    } else if (activePoint !== null && !markerClicked) {
-                                        setActivePoint(null);
-                                        $activePoint.current = null;
-                                        $controls.current.autoRotate = true;
-                                    }
-                                }}
-                                onTouchStart={() => {
-                                    setTouchStart(new Date());
-                                }}
-                            >
-                                <ThreeJSMapDataTooltip
-                                    name={feature.properties.name}
-                                    isActive={activePoint === i}
-                                    data={continentsData.find(data => data.id === feature.id)}
-                                />
-                            </button>
-                        );
-                    }
-                })}
-            </div>
+            <GlobeDataTestSection />
         </div>
     );
 };
