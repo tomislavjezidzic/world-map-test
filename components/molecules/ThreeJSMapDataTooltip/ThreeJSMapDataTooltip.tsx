@@ -83,10 +83,7 @@ const ThreeJSMapDataTooltip = ({
     );
 
     return (
-        <div
-            ref={$mainWrapper}
-            className={styles.wrapper}
-        >
+        <div ref={$mainWrapper} className={styles.wrapper}>
             <div className={styles.main}>
                 <div
                     className={cn(styles.marker, {

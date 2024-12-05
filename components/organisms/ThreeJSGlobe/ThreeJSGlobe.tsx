@@ -33,28 +33,28 @@ interface ThreeJSGlobeProps {
 
 const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
     const $globeRef = useRef<HTMLDivElement>(null);
-    const $w = useRef(null);
-    const $h = useRef(null);
+    const $w = useRef<number>(null);
+    const $h = useRef<number>(null);
     const $pi = useRef(Math.PI);
-    const $point = useRef(null);
-    const $scene = useRef(null);
-    const $pointGroups = useRef([]);
-    const $controls = useRef(null);
-    const $continents = useRef(null);
-    const $graticules = useRef(null);
-    const $camera = useRef(null);
-    const $renderer = useRef(null);
-    const $labelRenderer = useRef(null);
-    const $sphere = useRef(null);
-    const $raycaster = useRef(new THREE.Raycaster());
-    const $labels = useRef([]);
-    const [activePoint, setActivePoint] = useState(null);
-    const [labelsLoaded, setLabelsLoaded] = useState(false);
+    const $point = useRef<THREE.Mesh>(null);
+    const $activePoint = useRef<number | null>(null);
     const $threeGeoJSON = useRef(null);
-    const $activePoint = useRef(null);
-    const [touchStart, setTouchStart] = useState(null);
-    const [isMobile, setIsMobile] = useState(false);
+    const $scene = useRef<THREE.Scene>(null);
+    const $pointGroups = useRef<THREE.Mesh[]>([]);
+    const $controls = useRef<OrbitControls>(null);
+    const $continents = useRef<THREE.Mesh>(null);
+    const $graticules = useRef<THREE.Mesh>(null);
+    const $camera = useRef<THREE.PerspectiveCamera>(null);
+    const $renderer = useRef<THREE.WebGLRenderer>(null);
+    const $labelRenderer = useRef<CSS2DRenderer>(null);
+    const $sphere = useRef<THREE.Mesh>(null);
+    const $raycaster = useRef<THREE.Raycaster>(new THREE.Raycaster());
+    const $labels = useRef<CSS2DObject[]>([]);
+    const [activePoint, setActivePoint] = useState<number | null>(null);
+    const [labelsLoaded, setLabelsLoaded] = useState(false);
     const [markerClicked, setMarkerClicked] = useState(false);
+    const [touchStart, setTouchStart] = useState<Date | null>(null);
+    const [isMobile, setIsMobile] = useState(false);
 
     // useEffect(() => {
     //     const filteredData = [];
@@ -169,6 +169,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
                             duration: 1,
                             delay: 2 + 0.7 * index,
                             onUpdate: () => {
+                                // @ts-ignore
                                 group.material.color = new THREE.Color(
                                     fromColor.r,
                                     fromColor.g,
@@ -204,48 +205,43 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
     }, []);
 
     const addPoint = useCallback(
-        (lat: number, lng: number, subGeo: any) => {
-            if (!$point?.current) return;
+        (latitude: number, longitude: number, geometry: THREE.Geometry) => {
+            if (!$point.current) return;
 
-            const { x, y, z } = getCoordinates(lat, lng);
+            const { x, y, z } = getCoordinates(latitude, longitude);
 
-            $point.current.position.x = x;
-            $point.current.position.y = y;
-            $point.current.position.z = z;
-
+            $point.current.position.set(x, y, z);
             $point.current.lookAt($sphere.current.position);
-
             $point.current.updateMatrix();
 
-            subGeo.merge($point.current.geometry, $point.current.matrix);
+            // @ts-ignore
+            geometry.merge($point.current.geometry, $point.current.matrix);
         },
-        [$point.current]
+        [$point.current, getCoordinates, $sphere.current]
     );
 
-    const addData = useCallback(data => {
-        const addDataLoop = (index: number) => {
-            if (index >= data.length) {
-                return;
-            }
-            const subGeo = new THREE.Geometry();
-            for (let i = 0; i < data[index].length; i++) {
-                const lat = data[index][i].lat;
-                const lng = data[index][i].lng;
-                addPoint(lat, lng, subGeo);
+    const addData = useCallback((locationData: any[]) => {
+        const processLocationData = (index: number) => {
+            if (index >= locationData.length) return;
+
+            const geometry = new THREE.Geometry();
+            for (const location of locationData[index]) {
+                const { lat, lng } = location;
+                addPoint(lat, lng, geometry);
             }
 
-            index++;
-            addDataLoop(index);
-            createPoints(subGeo);
+            processLocationData(index + 1);
+            createMesh(geometry);
         };
 
-        addDataLoop(0);
+        processLocationData(0);
     }, []);
 
-    const createPoints = useCallback(subGeo => {
-        if (!$scene?.current) return;
-        const points = new THREE.Mesh(
-            subGeo,
+    const createMesh = useCallback((geometry: THREE.Geometry) => {
+        if (!$scene.current) return;
+
+        const mesh = new THREE.Mesh(
+            geometry,
             new THREE.MeshBasicMaterial({
                 color: new THREE.Color(0x3fdbed),
                 side: THREE.BackSide,
@@ -256,29 +252,26 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
             })
         );
 
-        $pointGroups.current.push(points);
-        $scene.current.add(points);
+        $pointGroups.current.push(mesh);
+        $scene.current.add(mesh);
     }, []);
 
     const render = useCallback(() => {
-        if (!$camera?.current) return;
+        if (!$camera.current) return;
 
         $camera.current.lookAt($sphere.current.position);
 
         $labels.current.forEach(label => {
-            label.getWorldPosition($raycaster.current.ray.origin);
+            const labelPosition = label.getWorldPosition(new THREE.Vector3());
+            const cameraPosition = $camera.current.position;
+            const direction = cameraPosition.clone().sub(labelPosition).normalize();
 
-            const rd = $camera.current.position
-                .clone()
-                .sub($raycaster.current.ray.origin)
-                .normalize();
-            $raycaster.current.ray.direction.set(rd.x, rd.y, rd.z);
+            $raycaster.current.set(labelPosition, direction);
+            const intersections = $raycaster.current.intersectObject($sphere.current);
 
-            const hits = $raycaster.current.intersectObjects([$sphere.current]);
-
-            if (hits.length > 0 && !label.element.classList.contains('is-hidden')) {
+            if (intersections.length > 0) {
                 label.element.classList.add('is-hidden');
-            } else if (hits.length == 0 && label.element.classList.contains('is-hidden')) {
+            } else {
                 label.element.classList.remove('is-hidden');
             }
         });
@@ -287,15 +280,16 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
         $labelRenderer.current.render($scene.current, $camera.current);
     }, [$camera.current, $scene.current]);
 
-    const onWindowResize = useCallback(() => {
-        $camera.current.aspect = $globeRef.current.offsetWidth / $globeRef.current.offsetHeight;
+    const handleWindowResize = useCallback(() => {
+        const globeWidth = $globeRef.current.offsetWidth;
+        const globeHeight = $globeRef.current.offsetHeight;
+
+        $camera.current.aspect = globeWidth / globeHeight;
         $camera.current.updateProjectionMatrix();
-        $renderer.current.setSize($globeRef.current.offsetWidth, $globeRef.current.offsetHeight);
-        $labelRenderer.current.setSize(
-            $globeRef.current.offsetWidth,
-            $globeRef.current.offsetHeight
-        );
-    }, []);
+
+        $renderer.current.setSize(globeWidth, globeHeight);
+        $labelRenderer.current.setSize(globeWidth, globeHeight);
+    }, [$camera, $globeRef, $labelRenderer, $renderer]);
 
     const createContinents = useCallback(() => {
         $threeGeoJSON.current.drawThreeGeo(continentData, 200, 'sphere', {
@@ -312,12 +306,16 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
             name: 'graticule',
         });
 
-        $graticules.current = $scene.current.getObjectByName('graticule');
+        $graticules.current = $scene.current.getObjectByName('graticule') as THREE.Mesh;
+        // @ts-ignore
         $graticules.current.material.transparent = true;
+        // @ts-ignore
         $graticules.current.material.opacity = 0;
 
-        $continents.current = $scene.current.getObjectByName('continent');
+        $continents.current = $scene.current.getObjectByName('continent') as THREE.Mesh;
+        // @ts-ignore
         $continents.current.material.transparent = true;
+        // @ts-ignore
         $continents.current.material.opacity = 0;
 
         continentData.features.forEach((feature: any) => {
@@ -327,13 +325,12 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
                     feature.pointCoordinates[0]
                 );
 
-                let labelDiv = document.getElementById(feature.id + '-marker');
+                let labelDiv = document.getElementById(`${feature.id}-marker`);
                 let label = new CSS2DObject(labelDiv);
 
                 label.position.set(x, y, z);
 
                 $labels.current.push(label);
-
                 $scene.current.add(label);
             }
         });
@@ -413,51 +410,52 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
         [activePoint, isMobile, markerClicked]
     );
 
-    const debounce = (func: any, wait: number) => {
-        let timeout: string | number | NodeJS.Timeout;
+    const createDebouncedFunction = (func: any, delay: number) => {
+        let timeoutId: string | number | NodeJS.Timeout;
         return (...args: any) => {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
                 func(...args);
-            }, wait);
+            }, delay);
         };
     };
 
-    const handleGlobeRotationEnd = useCallback(
-        (event: any) => {
-            if ($activePoint.current !== null) return;
-            const beta = $controls.current.getPolarAngle() - $pi.current / 2;
+    const handleGlobeRotationCompletion = useCallback(() => {
+        if ($activePoint.current !== null) return;
+        const polarAngleOffset = $pi.current / 2;
+        const currentPolarAngle = $controls.current.getPolarAngle() - polarAngleOffset;
 
-            gsap.fromTo(
-                $controls.current,
-                {
-                    minPolarAngle: $pi.current / 2 + beta,
-                    maxPolarAngle: $pi.current / 2 + beta,
+        gsap.fromTo(
+            $controls.current,
+            {
+                minPolarAngle: polarAngleOffset + currentPolarAngle,
+                maxPolarAngle: polarAngleOffset + currentPolarAngle,
+            },
+            {
+                minPolarAngle: polarAngleOffset,
+                maxPolarAngle: polarAngleOffset,
+                duration: 0.5,
+                ease: 'power4.out',
+                onComplete: () => {
+                    $controls.current.minPolarAngle = 0;
+                    $controls.current.maxPolarAngle = $pi.current;
                 },
-                {
-                    minPolarAngle: $pi.current / 2,
-                    maxPolarAngle: $pi.current / 2,
-                    duration: 0.5,
-                    ease: 'power4.out',
-                    onComplete: () => {
-                        $controls.current.minPolarAngle = 0;
-                        $controls.current.maxPolarAngle = $pi.current;
-                    },
-                }
-            );
-        },
-        [$activePoint.current]
-    );
+            }
+        );
+    }, [$activePoint.current]);
 
     useEffect(() => {
-        const debouncedHandleGlobeRotationEnd = debounce(handleGlobeRotationEnd, 1000);
+        const debouncedHandleGlobeRotationCompletion = createDebouncedFunction(
+            handleGlobeRotationCompletion,
+            1000
+        );
         if ($controls.current) {
-            $controls.current.addEventListener('end', debouncedHandleGlobeRotationEnd, false);
+            $controls.current.addEventListener('end', debouncedHandleGlobeRotationCompletion);
         }
         return () => {
-            $controls?.current?.removeEventListener('end', debouncedHandleGlobeRotationEnd, false);
+            $controls?.current?.removeEventListener('end', debouncedHandleGlobeRotationCompletion);
         };
-    }, [$controls.current, handleGlobeRotationEnd]);
+    }, [$controls.current, handleGlobeRotationCompletion]);
 
     const Globe = useCallback(() => {
         $w.current = $globeRef.current.offsetWidth;
@@ -470,13 +468,11 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
         $scene.current = new THREE.Scene();
 
         const geometry = new THREE.SphereGeometry(199, 40, 30);
-
         const material = new THREE.MeshBasicMaterial({
             color: 0x2d2c2c,
             transparent: true,
             opacity: 0,
         });
-
         $sphere.current = new THREE.Mesh(geometry, material);
         $scene.current.add($sphere.current);
 
@@ -491,11 +487,8 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
         $renderer.current.setPixelRatio(
             window.devicePixelRatio > 1 ? Math.min(2.5, window.devicePixelRatio) : 1
         );
-
         $renderer.current.setSize($w.current, $h.current);
-
         $globeRef.current.appendChild($renderer.current.domElement);
-
         $threeGeoJSON.current = new threeGeoJSON($scene.current);
 
         $labelRenderer.current = new CSS2DRenderer();
@@ -521,10 +514,10 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
 
         createContinents();
 
-        window.addEventListener('resize', onWindowResize, false);
+        window.addEventListener('resize', handleWindowResize, false);
 
         return () => {
-            window.removeEventListener('resize', onWindowResize, false);
+            window.removeEventListener('resize', handleWindowResize, false);
         };
     }, []);
 
@@ -590,7 +583,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
                                         setMarkerClicked(true);
                                         handleClick(feature.pointCoordinates, i);
                                     }}
-                                    onTouchEnd={ev => {
+                                    onTouchEnd={() => {
                                         // @ts-ignore
                                         if (new Date() - touchStart <= 300 && !markerClicked) {
                                             handleClick(feature.pointCoordinates, i);

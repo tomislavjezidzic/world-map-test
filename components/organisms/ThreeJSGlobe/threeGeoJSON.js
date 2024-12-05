@@ -1,293 +1,228 @@
-/* Draw GeoJSON
-
-Iterates through the latitude and longitude values, converts the values to XYZ coordinates,
-and draws the geoJSON geometries.
-
-*/
-
 import * as THREE from 'three';
 
-let x_values = [];
-let y_values = [];
-let z_values = [];
+let xValues = [];
+let yValues = [];
+let zValues = [];
 
 export default class threeGeoJSON {
     constructor(scene) {
         this.scene = scene;
     }
 
-    drawThreeGeo(json, radius, shape, options) {
-        const json_geom = this.createGeometryArray(json, shape);
-        //An array to hold the feature geometries.
-        const convertCoordinates = this.getConversionFunctionName(shape);
-        //Whether you want to convert to spherical or planar coordinates.
-        let coordinate_array = [];
-        //Re-usable array to hold coordinate values. This is necessary so that you can add
-
-        const line_material = new THREE.LineBasicMaterial({
+    drawThreeGeo(jsonData, radius, shape, options) {
+        const geometryArray = this.createGeometryArray(jsonData);
+        const conversionFunction = this.getConversionFunctionName(shape);
+        const lineMaterial = new THREE.LineBasicMaterial({
             color: options.color || 'red',
         });
 
-        //interpolated coordinates. Otherwise, lines go through the sphere instead of wrapping around.
-
-        for (let geom_num = 0; geom_num < json_geom.length; geom_num++) {
-            if (json_geom[geom_num].type === 'Point') {
-                convertCoordinates(json_geom[geom_num].coordinates, radius, options);
-                this.drawParticle(y_values[0], z_values[0], x_values[0], options);
-            } else if (json_geom[geom_num].type === 'MultiPoint') {
-                for (
-                    let point_num = 0;
-                    point_num < json_geom[geom_num].coordinates.length;
-                    point_num++
-                ) {
-                    convertCoordinates(json_geom[geom_num].coordinates[point_num], radius, options);
-                    this.drawParticle(y_values[0], z_values[0], x_values[0], options);
-                }
-            } else if (json_geom[geom_num].type === 'LineString') {
-                coordinate_array = this.createCoordinateArray(
-                    json_geom[geom_num].coordinates,
-                    options
-                );
-
-                for (let point_num = 0; point_num < coordinate_array.length; point_num++) {
-                    convertCoordinates(coordinate_array[point_num], radius, options);
-                }
-                this.drawLine(y_values, z_values, x_values, options, line_material);
-            } else if (
-                json_geom[geom_num].type === 'MultiLineString' ||
-                json_geom[geom_num].type === 'Polygon'
-            ) {
-                for (
-                    let segment_num = 0;
-                    segment_num < json_geom[geom_num].coordinates.length;
-                    segment_num++
-                ) {
-                    coordinate_array = this.createCoordinateArray(
-                        json_geom[geom_num].coordinates[segment_num]
-                    );
-
-                    for (let point_num = 0; point_num < coordinate_array.length; point_num++) {
-                        convertCoordinates(coordinate_array[point_num], radius, options);
+        for (const geometry of geometryArray) {
+            switch (geometry.type) {
+                case 'Point':
+                    conversionFunction(geometry.coordinates, radius, options);
+                    this.drawParticle(yValues[0], zValues[0], xValues[0], options);
+                    break;
+                case 'MultiPoint':
+                    for (const point of geometry.coordinates) {
+                        conversionFunction(point, radius, options);
+                        this.drawParticle(yValues[0], zValues[0], xValues[0], options);
                     }
-                    this.drawLine(y_values, z_values, x_values, options, line_material);
-                }
-            } else if (json_geom[geom_num].type === 'MultiPolygon') {
-                for (
-                    let polygon_num = 0;
-                    polygon_num < json_geom[geom_num].coordinates.length;
-                    polygon_num++
-                ) {
-                    for (
-                        let segment_num = 0;
-                        segment_num < json_geom[geom_num].coordinates[polygon_num].length;
-                        segment_num++
-                    ) {
-                        coordinate_array = this.createCoordinateArray(
-                            json_geom[geom_num].coordinates[polygon_num][segment_num]
-                        );
-
-                        for (let point_num = 0; point_num < coordinate_array.length; point_num++) {
-                            convertCoordinates(coordinate_array[point_num], radius, options);
+                    break;
+                case 'LineString':
+                    const coordinateArray = this.createCoordinateArray(geometry.coordinates, options);
+                    for (const point of coordinateArray) {
+                        conversionFunction(point, radius, options);
+                    }
+                    this.drawLine(yValues, zValues, xValues, options, lineMaterial);
+                    break;
+                case 'MultiLineString':
+                case 'Polygon':
+                    for (const segment of geometry.coordinates) {
+                        const coordinateArray = this.createCoordinateArray(segment, options);
+                        for (const point of coordinateArray) {
+                            conversionFunction(point, radius, options);
                         }
-                        this.drawLine(y_values, z_values, x_values, options, line_material);
+                        this.drawLine(yValues, zValues, xValues, options, lineMaterial);
                     }
-                }
-            } else {
-                throw new Error('The geoJSON is not valid.');
+                    break;
+                case 'MultiPolygon':
+                    for (const polygon of geometry.coordinates) {
+                        for (const segment of polygon) {
+                            const coordinateArray = this.createCoordinateArray(segment, options);
+                            for (const point of coordinateArray) {
+                                conversionFunction(point, radius, options);
+                            }
+                            this.drawLine(yValues, zValues, xValues, options, lineMaterial);
+                        }
+                    }
+                    break;
+                default:
+                    throw new Error('Invalid geoJSON type');
             }
         }
     }
 
-    createGeometryArray(json, shape) {
-        let geometry_array = [];
+    createGeometryArray(geoJson) {
+        const geometryArray = [];
 
-        if (json.type === 'Feature') {
-            geometry_array.push(json.geometry);
-        } else if (json.type === 'FeatureCollection') {
-            for (let feature_num = 0; feature_num < json.features.length; feature_num++) {
-                geometry_array.push(json.features[feature_num].geometry);
-            }
-        } else if (json.type === 'GeometryCollection') {
-            for (let geom_num = 0; geom_num < json.geometries.length; geom_num++) {
-                geometry_array.push(json.geometries[geom_num]);
-            }
-        } else {
-            throw new Error('The geoJSON is not valid.');
+        switch (geoJson.type) {
+            case 'Feature':
+                geometryArray.push(geoJson.geometry);
+                break;
+            case 'FeatureCollection':
+                for (const feature of geoJson.features) {
+                    geometryArray.push(feature.geometry);
+                }
+                break;
+            case 'GeometryCollection':
+                for (const geometry of geoJson.geometries) {
+                    geometryArray.push(geometry);
+                }
+                break;
+            default:
+                throw new Error('Invalid geoJSON type');
         }
-        //alert(geometry_array.length);
-        return geometry_array;
+
+        return geometryArray;
     }
 
     getConversionFunctionName(shape) {
-        let conversionFunctionName;
+        const conversionFunction = {
+            sphere: this.convertToSphereCoords,
+            plane: this.convertToPlaneCoords,
+        }[shape];
 
-        if (shape === 'sphere') {
-            conversionFunctionName = this.convertToSphereCoords;
-        } else if (shape === 'plane') {
-            conversionFunctionName = this.convertToPlaneCoords;
-        } else {
-            throw new Error('The shape that you specified is not valid.');
+        if (!conversionFunction) {
+            throw new Error(`Invalid shape: ${shape}`);
         }
-        return conversionFunctionName;
+
+        return conversionFunction;
     }
 
-    createCoordinateArray(feature) {
-        //Loop through the coordinates and figure out if the points need interpolation.
-        let temp_array = [];
-        let interpolation_array = [];
+    createCoordinateArray(feature, options) {
+        const coordinates = [];
 
-        for (let point_num = 0; point_num < feature.length; point_num++) {
-            let point1 = feature[point_num];
-            let point2 = feature[point_num - 1];
+        for (let i = 0; i < feature.length; i++) {
+            const currentPoint = feature[i];
+            const previousPoint = feature[i - 1];
 
-            if (point_num > 0) {
-                if (this.needsInterpolation(point2, point1)) {
-                    interpolation_array = [point2, point1];
-                    interpolation_array = this.interpolatePoints(interpolation_array);
-
-                    for (
-                        let inter_point_num = 0;
-                        inter_point_num < interpolation_array.length;
-                        inter_point_num++
-                    ) {
-                        temp_array.push(interpolation_array[inter_point_num]);
-                    }
-                } else {
-                    temp_array.push(point1);
-                }
+            if (i > 0 && this.needsInterpolation(previousPoint, currentPoint)) {
+                const interpolationPoints = this.interpolatePoints([previousPoint, currentPoint]);
+                coordinates.push(...interpolationPoints);
             } else {
-                temp_array.push(point1);
+                coordinates.push(currentPoint);
             }
         }
-        return temp_array;
+
+        return coordinates;
     }
 
     needsInterpolation(point2, point1) {
-        //If the distance between two latitude and longitude values is
-        //greater than five degrees, return true.
-        let lon1 = point1[0];
-        let lat1 = point1[1];
-        let lon2 = point2[0];
-        let lat2 = point2[1];
-        let lon_distance = Math.abs(lon1 - lon2);
-        let lat_distance = Math.abs(lat1 - lat2);
+        const longitude1 = point1[0];
+        const latitude1 = point1[1];
+        const longitude2 = point2[0];
+        const latitude2 = point2[1];
 
-        if (lon_distance > 5 || lat_distance > 5) {
-            return true;
-        } else {
-            return false;
-        }
+        return Math.abs(longitude1 - longitude2) > 5 || Math.abs(latitude1 - latitude2) > 5;
     }
 
-    interpolatePoints(interpolation_array) {
-        //This function is recursive. It will continue to add midpoints to the
-        //interpolation array until needsInterpolation() returns false.
-        let temp_array = [];
-        let point1, point2;
+    interpolatePoints(interpolationArray) {
+        const interpolatedPoints = [];
 
-        for (let point_num = 0; point_num < interpolation_array.length - 1; point_num++) {
-            point1 = interpolation_array[point_num];
-            point2 = interpolation_array[point_num + 1];
+        for (let i = 0; i < interpolationArray.length - 1; i++) {
+            const currentPoint = interpolationArray[i];
+            const nextPoint = interpolationArray[i + 1];
 
-            if (this.needsInterpolation(point2, point1)) {
-                temp_array.push(point1);
-                temp_array.push(this.getMidpoint(point1, point2));
+            if (this.needsInterpolation(nextPoint, currentPoint)) {
+                interpolatedPoints.push(currentPoint, this.getMidpoint(currentPoint, nextPoint));
             } else {
-                temp_array.push(point1);
+                interpolatedPoints.push(currentPoint);
             }
         }
 
-        temp_array.push(interpolation_array[interpolation_array.length - 1]);
+        interpolatedPoints.push(interpolationArray[interpolationArray.length - 1]);
 
-        if (temp_array.length > interpolation_array.length) {
-            temp_array = this.interpolatePoints(temp_array);
-        } else {
-            return temp_array;
+        if (interpolatedPoints.length > interpolationArray.length) {
+            return this.interpolatePoints(interpolatedPoints);
         }
-        return temp_array;
+
+        return interpolatedPoints;
     }
 
     getMidpoint(point1, point2) {
-        let midpoint_lon = (point1[0] + point2[0]) / 2;
-        let midpoint_lat = (point1[1] + point2[1]) / 2;
-        let midpoint = [midpoint_lon, midpoint_lat];
-
-        return midpoint;
+        const longitude = (point1[0] + point2[0]) / 2;
+        const latitude = (point1[1] + point2[1]) / 2;
+        return [longitude, latitude];
     }
 
-    convertToSphereCoords(coordinates_array, sphere_radius) {
-        let lon = coordinates_array[0];
-        let lat = coordinates_array[1];
+    convertToSphereCoords(coordinates, radius) {
+        const [longitude, latitude] = coordinates;
 
-        x_values.push(
-            Math.cos((lat * Math.PI) / 180) * Math.cos((lon * Math.PI) / 180) * sphere_radius
-        );
-        y_values.push(
-            Math.cos((lat * Math.PI) / 180) * Math.sin((lon * Math.PI) / 180) * sphere_radius
-        );
-        z_values.push(Math.sin((lat * Math.PI) / 180) * sphere_radius);
+        const x =
+            Math.cos(latitude * (Math.PI / 180)) * Math.cos(longitude * (Math.PI / 180)) * radius;
+        const y =
+            Math.cos(latitude * (Math.PI / 180)) * Math.sin(longitude * (Math.PI / 180)) * radius;
+        const z = Math.sin(latitude * (Math.PI / 180)) * radius;
+
+        xValues.push(x);
+        yValues.push(y);
+        zValues.push(z);
     }
 
-    convertToPlaneCoords(coordinates_array, radius, options) {
-        let lon = coordinates_array[0];
-        let lat = coordinates_array[1];
+    convertToPlaneCoords(coordinates, radius, options) {
+        const longitude = coordinates[0];
+        const latitude = coordinates[1];
 
-        z_values.push(lat * (options.height / 2 / 180.0));
-        y_values.push(lon * (options.width / 2 / 360.0));
+        zValues.push(latitude * (options.height / 2 / 180.0));
+        yValues.push(longitude * (options.width / 2 / 360.0));
     }
 
-    drawParticle(x, y, z, options) {
-        let particle_geom = new THREE.Geometry();
-        particle_geom.vertices.push(new THREE.Vector3(x, y, z));
+    drawParticle(x, y, z, particleOptions) {
+        const particleGeometry = new THREE.Geometry();
+        particleGeometry.vertices.push(new THREE.Vector3(x, y, z));
 
-        let particle_material = new THREE.ParticleSystemMaterial(options);
+        const particleMaterial = new THREE.ParticleSystemMaterial(particleOptions);
 
-        let particle = new THREE.ParticleSystem(particle_geom, particle_material);
-        this.scene.add(particle);
+        const particleSystem = new THREE.ParticleSystem(particleGeometry, particleMaterial);
+        this.scene.add(particleSystem);
 
         this.clearArrays();
     }
 
-    drawLine(x_values, y_values, z_values, options, line_material) {
-        // container
-        let objEl = new THREE.Object3D();
+    drawLine(xValues, yValues, zValues, options, lineMaterial) {
+        const lineContainer = new THREE.Object3D();
+        const lineGeometry = new THREE.Geometry();
+        this.createVerticesForGeometry(lineGeometry, xValues, yValues, zValues);
 
-        // lines
-        let line_geom = new THREE.Geometry();
-        this.createVertexForEachPoint(line_geom, x_values, y_values, z_values);
-
-        let line = new THREE.Line(line_geom, line_material);
+        const line = new THREE.Line(lineGeometry, lineMaterial);
         line.name = options.name || '';
-        objEl.add(line);
+        lineContainer.add(line);
 
-        // mesh
-        let mesh_geom = new THREE.Geometry();
-        this.createVertexForEachPoint(mesh_geom, x_values, y_values, z_values);
-        let mesh_material = new THREE.MeshBasicMaterial({
+        const meshGeometry = new THREE.Geometry();
+        this.createVerticesForGeometry(meshGeometry, xValues, yValues, zValues);
+        const meshMaterial = new THREE.MeshBasicMaterial({
             transparent: true,
             opacity: 0,
             side: THREE.DoubleSide,
         });
-        let mesh = new THREE.Mesh(mesh_geom, mesh_material);
+        const mesh = new THREE.Mesh(meshGeometry, meshMaterial);
 
-        objEl.add(mesh);
-        this.scene.add(objEl);
+        lineContainer.add(mesh);
+        this.scene.add(lineContainer);
         this.clearArrays();
     }
 
-    createVertexForEachPoint(object_geometry, values_axis1, values_axis2, values_axis3) {
-        for (let i = 0; i < values_axis1.length; i++) {
-            object_geometry.vertices.push(
-                new THREE.Vector3(values_axis1[i] || 0, values_axis2[i] || 0, values_axis3[i] || 0)
-            );
-
-            object_geometry.faces.push(new THREE.Face3(0, i, i)); // <- add faces
+    createVerticesForGeometry(geometry, xValues, yValues, zValues) {
+        for (let index = 0; index < xValues.length; index++) {
+            const vertex = new THREE.Vector3(xValues[index] ?? 0, yValues[index] ?? 0, zValues[index] ?? 0);
+            geometry.vertices.push(vertex);
+            geometry.faces.push(new THREE.Face3(0, index, index));
         }
     }
 
     clearArrays() {
-        x_values.length = 0;
-        y_values.length = 0;
-        z_values.length = 0;
+        xValues.length = 0;
+        yValues.length = 0;
+        zValues.length = 0;
     }
 }
