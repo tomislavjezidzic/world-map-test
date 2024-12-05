@@ -3,7 +3,7 @@ import Image from 'next/image';
 import aboveMapImage from '@public/images/above.jpg';
 import belowMapImage from '@public/images/below.png';
 import { useEffect } from 'react';
-import ThreeJS from '@organisms/ThreeJS';
+import ThreeJSGlobe from 'components/organisms/ThreeJSGlobe';
 import CounterTestSection from '@organisms/CounterTestSection';
 
 interface ThreeJSExampleProps {}
@@ -22,7 +22,7 @@ const KeplerExamplePage = ({}: ThreeJSExampleProps) => {
                 <Image src={aboveMapImage} alt="above" />
             </div>
 
-            <ThreeJS
+            <ThreeJSGlobe
                 continentsData={[
                     {
                         id: 'europe',
@@ -125,7 +125,7 @@ const KeplerExamplePage = ({}: ThreeJSExampleProps) => {
 export const getStaticProps: GetStaticProps = () => {
     return {
         props: {
-            title: 'ThreeJS Example Page',
+            title: 'ThreeJSGlobe Example Page',
         },
         revalidate: 3600,
     };

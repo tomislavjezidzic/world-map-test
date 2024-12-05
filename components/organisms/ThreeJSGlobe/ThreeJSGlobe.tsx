@@ -1,4 +1,4 @@
-import styles from './ThreeJS.module.scss';
+import styles from './ThreeJSGlobe.module.scss';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import locationsData from '@public/location-data-reduced.json';
@@ -19,7 +19,7 @@ if (typeof window !== 'undefined') {
     gsap.registerPlugin(ScrollTrigger, useGSAP);
 }
 
-interface ThreeJSProps {
+interface ThreeJSGlobeProps {
     continentsData: {
         id: string;
         countries: string[];
@@ -30,7 +30,7 @@ interface ThreeJSProps {
     }[];
 }
 
-const ThreeJS = ({ continentsData }: ThreeJSProps) => {
+const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
     const $globeRef = useRef<HTMLDivElement>(null);
     const $w = useRef(null);
     const $h = useRef(null);
@@ -57,32 +57,30 @@ const ThreeJS = ({ continentsData }: ThreeJSProps) => {
     const [markerClicked, setMarkerClicked] = useState(false);
 
     // useEffect(() => {
-    //     setTimeout(() => {
-    //         const filteredData = [];
+    //     const filteredData = [];
     //
-    //         for (let i = 0; i < locationsData.length; i++) {
-    //             const point = locationsData[i];
-    //             let keepPoint = true;
+    //     for (let i = 0; i < locationsData.length; i++) {
+    //         const point = locationsData[i];
+    //         let keepPoint = true;
     //
-    //             for (let j = 0; j < locationsData.length; j++) {
-    //                 if (i !== j) {
-    //                     const otherPoint = locationsData[j];
-    //                     const latDiff = Math.abs(point.lat - otherPoint.lat);
-    //                     const lngDiff = Math.abs(point.lng - otherPoint.lng);
+    //         for (let j = 0; j < locationsData.length; j++) {
+    //             if (i !== j) {
+    //                 const otherPoint = locationsData[j];
+    //                 const latDiff = Math.abs(point.lat - otherPoint.lat);
+    //                 const lngDiff = Math.abs(point.lng - otherPoint.lng);
     //
-    //                     if (latDiff < 0.05 && lngDiff < 0.05) {
-    //                         keepPoint = false;
-    //                         break;
-    //                     }
+    //                 if (latDiff < 0.05 && lngDiff < 0.05) {
+    //                     keepPoint = false;
+    //                     break;
     //                 }
     //             }
-    //
-    //             if (keepPoint) {
-    //                 filteredData.push(point);
-    //             }
     //         }
-    //         console.log(filteredData);
-    //     }, 1000);
+    //
+    //         if (keepPoint) {
+    //             filteredData.push(point);
+    //         }
+    //     }
+    //     console.log(filteredData);
     // }, []);
 
     useEffect(() => {
@@ -623,4 +621,4 @@ const ThreeJS = ({ continentsData }: ThreeJSProps) => {
     );
 };
 
-export default ThreeJS;
+export default ThreeJSGlobe;
