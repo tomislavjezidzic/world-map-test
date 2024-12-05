@@ -11,16 +11,6 @@
     position: absolute;
     left: 0;
     top: 0;
-
-    .isRight & {
-        left: auto;
-        right: 0;
-    }
-
-    .isBottom & {
-        top: auto;
-        bottom: 0;
-    }
 }
 
 .marker {
@@ -32,16 +22,6 @@
     top: 0;
     z-index: 1;
     cursor: pointer;
-
-    .isRight & {
-        left: auto;
-        right: 0;
-    }
-
-    .isBottom & {
-        top: auto;
-        bottom: 0;
-    }
 
     &:after,
     &:before {

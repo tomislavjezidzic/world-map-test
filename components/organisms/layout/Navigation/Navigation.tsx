@@ -28,14 +28,7 @@ const Navigation = ({}: NavigationProps) => {
                                             [styles.isActive]: pathname === '/threejs-example',
                                         })}
                                     >
-                                        <Link href="/threejs-example">ThreeJS Sphere Example</Link>
-                                    </li>
-                                    <li
-                                        className={cn(styles.navigationItem, {
-                                            [styles.isActive]: pathname === '/threejs-flat-example',
-                                        })}
-                                    >
-                                        <Link href="/threejs-flat-example">ThreeJS Plane Example</Link>
+                                        <Link href="/threejs-example">ThreeJS Example</Link>
                                     </li>
                                 </ul>
                             </nav>
