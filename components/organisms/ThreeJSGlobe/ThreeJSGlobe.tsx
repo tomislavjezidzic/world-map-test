@@ -1,3 +1,12 @@
+/**
+ * ThreeJSGlobe component.
+ *
+ * This component renders a 3D globe with markers and tooltips.
+ *
+ * @param {ThreeJSGlobeProps} props - Component props.
+ * @returns {JSX.Element} - The rendered component.
+ */
+
 import styles from './ThreeJSGlobe.module.scss';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
@@ -16,11 +25,20 @@ import ThreeJSMapDataTooltip from '@molecules/ThreeJSMapDataTooltip';
 import cn from 'classnames';
 import GlobeDataTestSection from '@organisms/GlobeDataTestSection';
 
+// Register GSAP plugins
 if (typeof window !== 'undefined') {
     gsap.registerPlugin(ScrollTrigger, useGSAP);
 }
 
+/**
+ * ThreeJSGlobe props interface.
+ *
+ * @interface ThreeJSGlobeProps
+ */
 interface ThreeJSGlobeProps {
+    /**
+     * @type {{ id: string; countries: string[]; humans: string; users: string; transactions: string; orbs: string }[]}
+     */
     continentsData: {
         id: string;
         countries: string[];
@@ -31,6 +49,12 @@ interface ThreeJSGlobeProps {
     }[];
 }
 
+/**
+ * ThreeJSGlobe component.
+ *
+ * @param {ThreeJSGlobeProps} props - Component props.
+ * @returns {JSX.Element} - The rendered component.
+ */
 const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
     const $globeRef = useRef<HTMLDivElement>(null);
     const $w = useRef<number>(null);
