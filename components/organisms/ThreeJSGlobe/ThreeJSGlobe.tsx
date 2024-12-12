@@ -172,22 +172,22 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
                             delay: 1 + 0.7 * index,
                         });
 
-                        gsap.to(fromColor, {
-                            r: toColor.r,
-                            g: toColor.g,
-                            b: toColor.b,
-                            ease: 'none',
-                            duration: 1,
-                            delay: 2 + 0.7 * index,
-                            onUpdate: () => {
-                                // @ts-ignore
-                                group.material.color = new THREE.Color(
-                                    fromColor.r,
-                                    fromColor.g,
-                                    fromColor.b
-                                );
-                            },
-                        });
+                        // gsap.to(fromColor, {
+                        //     r: toColor.r,
+                        //     g: toColor.g,
+                        //     b: toColor.b,
+                        //     ease: 'none',
+                        //     duration: 1,
+                        //     delay: 2 + 0.7 * index,
+                        //     onUpdate: () => {
+                        //         // @ts-ignore
+                        //         group.material.color = new THREE.Color(
+                        //             fromColor.r,
+                        //             fromColor.g,
+                        //             fromColor.b
+                        //         );
+                        //     },
+                        // });
                     });
 
                     setTimeout(() => {
@@ -304,7 +304,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
 
     const createContinents = useCallback(() => {
         $threeGeoJSON.current.drawThreeGeo(continentData, 200, 'sphere', {
-            color: 0x3fdbed,
+            color: "#000",
             width: $w.current,
             height: $h.current,
             name: 'continent',
@@ -480,7 +480,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
 
         const geometry = new THREE.SphereGeometry(199, 40, 30);
         const material = new THREE.MeshBasicMaterial({
-            color: 0x2d2c2c,
+            color: 0xF3F2F0,
             transparent: true,
             opacity: 0,
         });
