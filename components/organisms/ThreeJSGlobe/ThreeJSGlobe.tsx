@@ -7,28 +7,35 @@
  * @returns {JSX.Element} - The rendered component.
  */
 
+import cn from 'classnames';
 import styles from './ThreeJSGlobe.module.scss';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+
+// THREE.js imports
 import * as THREE from 'three';
-import locationsData from '@public/location-data-reduced.json';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer';
+
+// Utils
 import threeGeoJSON from './threeGeoJSON';
 
-import gsap from 'gsap';
-import continentData from './data/continents.json';
-import graticules from './data/graticules.json';
-
-import { useGSAP } from '@gsap/react';
+// Components
 import ThreeJSMapDataTooltip from '@molecules/ThreeJSMapDataTooltip';
-import cn from 'classnames';
-import GlobeDataTestSection from '@organisms/GlobeDataTestSection';
+import GlobeDataTestSection from '@organisms/GlobeDataTestSection'; // should be replaced
 
 // Register GSAP plugins
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
+
 if (typeof window !== 'undefined') {
     gsap.registerPlugin(ScrollTrigger, useGSAP);
 }
+
+// Data
+import locationsData from '@public/location-data-reduced.json';
+import continentData from './data/continents.json';
+import graticules from './data/graticules.json';
 
 /**
  * ThreeJSGlobe props interface.
@@ -37,7 +44,14 @@ if (typeof window !== 'undefined') {
  */
 interface ThreeJSGlobeProps {
     /**
-     * @type {{ id: string; countries: string[]; humans: string; users: string; transactions: string; orbs: string }[]}
+     * @type {{
+     * id: string;
+     * countries: string[];
+     * humans: string;
+     * users: string;
+     * transactions: string;
+     * orbs: string
+     * }[]}
      */
     continentsData: {
         id: string;
@@ -49,16 +63,10 @@ interface ThreeJSGlobeProps {
     }[];
 }
 
-/**
- * ThreeJSGlobe component.
- *
- * @param {ThreeJSGlobeProps} props - Component props.
- * @returns {JSX.Element} - The rendered component.
- */
 const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
     const $globeRef = useRef<HTMLDivElement>(null);
-    const $w = useRef<number>(null);
-    const $h = useRef<number>(null);
+    const $width = useRef<number>(null);
+    const $height = useRef<number>(null);
     const $pi = useRef(Math.PI);
     const $point = useRef<THREE.Mesh>(null);
     const $activePoint = useRef<number | null>(null);
@@ -305,15 +313,15 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
     const createContinents = useCallback(() => {
         $threeGeoJSON.current.drawThreeGeo(continentData, 200, 'sphere', {
             color: 0x3fdbed,
-            width: $w.current,
-            height: $h.current,
+            width: $width.current,
+            height: $height.current,
             name: 'continent',
         });
 
         $threeGeoJSON.current.drawThreeGeo(graticules, 200, 'sphere', {
             color: 0x575654,
-            width: $w.current,
-            height: $h.current,
+            width: $width.current,
+            height: $height.current,
             name: 'graticule',
         });
 
@@ -469,10 +477,10 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
     }, [$controls.current, handleGlobeRotationCompletion]);
 
     const Globe = useCallback(() => {
-        $w.current = $globeRef.current.offsetWidth;
-        $h.current = $globeRef.current.offsetHeight;
+        $width.current = $globeRef.current.offsetWidth;
+        $height.current = $globeRef.current.offsetHeight;
 
-        $camera.current = new THREE.PerspectiveCamera(30, $w.current / $h.current, 1, 1100);
+        $camera.current = new THREE.PerspectiveCamera(30, $width.current / $height.current, 1, 1100);
 
         $camera.current.position.z = 1000;
 
@@ -498,12 +506,12 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
         $renderer.current.setPixelRatio(
             window.devicePixelRatio > 1 ? Math.min(2.5, window.devicePixelRatio) : 1
         );
-        $renderer.current.setSize($w.current, $h.current);
+        $renderer.current.setSize($width.current, $height.current);
         $globeRef.current.appendChild($renderer.current.domElement);
         $threeGeoJSON.current = new threeGeoJSON($scene.current);
 
         $labelRenderer.current = new CSS2DRenderer();
-        $labelRenderer.current.setSize($w.current, $h.current);
+        $labelRenderer.current.setSize($width.current, $height.current);
         $labelRenderer.current.domElement.style.position = 'absolute';
         $labelRenderer.current.domElement.style.top = '0px';
         $labelRenderer.current.domElement.style.left = '0px';
@@ -532,6 +540,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
         };
     }, []);
 
+    // remove this effect if you have different detection
     useEffect(() => {
         if (
             /(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|ipad|iris|kindle|Android|Silk|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(

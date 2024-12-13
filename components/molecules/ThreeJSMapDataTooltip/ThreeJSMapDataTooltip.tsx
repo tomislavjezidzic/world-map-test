@@ -1,8 +1,10 @@
-import styles from './ThreeJSMapDataTooltip.module.scss';
 import cn from 'classnames';
-import { useGSAP } from '@gsap/react';
+import styles from './ThreeJSMapDataTooltip.module.scss';
 import { useCallback, useRef } from 'react';
+
+// GSAP
 import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
 
 interface ThreeJSMapDataTooltipProps {
     isActive: boolean;
@@ -49,6 +51,7 @@ const ThreeJSMapDataTooltip = ({
 
                         gsap.to($textRefs.current, {
                             autoAlpha: 1,
+                            delay: 0.1,
                             stagger: 0.07,
                         });
                     },
@@ -80,10 +83,10 @@ const ThreeJSMapDataTooltip = ({
     }, [isActive]);
 
     const setRef = useCallback(
-        (el: HTMLElement, key: number) => {
+        (el: HTMLElement) => {
             if (!$textRefs.current) return;
 
-            void ($textRefs.current[key] = el);
+            void $textRefs.current.push(el);
         },
         [$textRefs]
     );
@@ -100,38 +103,50 @@ const ThreeJSMapDataTooltip = ({
                 {data && (
                     <div className={styles.content} ref={$content}>
                         <div className={styles.contentInner}>
-                            <h3 className={styles.continent} ref={el => setRef(el, 0)}>
-                                {name}
-                            </h3>
+                            {name && (
+                                <h3 className={styles.continent} ref={el => setRef(el)}>
+                                    {name}
+                                </h3>
+                            )}
 
-                            <p className={styles.countries} ref={el => setRef(el, 1)}>
-                                {data?.countries?.join(', ')}.
-                            </p>
+                            {data?.countries && (
+                                <p className={styles.countries} ref={el => setRef(el)}>
+                                    {data.countries?.join(', ')}.
+                                </p>
+                            )}
 
                             <ul>
-                                <li ref={el => setRef(el, 2)}>
-                                    <p>Unique humans</p>
+                                {data?.humans && (
+                                    <li ref={el => setRef(el)}>
+                                        <p>Unique humans</p>
 
-                                    <span>{data?.humans}</span>
-                                </li>
+                                        <span>{data.humans}</span>
+                                    </li>
+                                )}
 
-                                <li ref={el => setRef(el, 3)}>
-                                    <p>World App users</p>
+                                {data?.users && (
+                                    <li ref={el => setRef(el)}>
+                                        <p>World App users</p>
 
-                                    <span>{data?.users}</span>
-                                </li>
+                                        <span>{data.users}</span>
+                                    </li>
+                                )}
 
-                                <li ref={el => setRef(el, 4)}>
-                                    <p>Wallet transactions</p>
+                                {data?.transactions && (
+                                    <li ref={el => setRef(el)}>
+                                        <p>Wallet transactions</p>
 
-                                    <span>{data?.transactions}</span>
-                                </li>
+                                        <span>{data.transactions}</span>
+                                    </li>
+                                )}
 
-                                <li ref={el => setRef(el, 5)}>
-                                    <p>Active Orbs</p>
+                                {data?.orbs && (
+                                    <li ref={el => setRef(el)}>
+                                        <p>Active Orbs</p>
 
-                                    <span>{data?.orbs}</span>
-                                </li>
+                                        <span>{data.orbs}</span>
+                                    </li>
+                                )}
                             </ul>
                         </div>
                     </div>

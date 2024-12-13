@@ -22,6 +22,7 @@ const KeplerExamplePage = ({}: ThreeJSExampleProps) => {
                 <Image src={aboveMapImage} alt="above" />
             </div>
 
+            {/* Main globe component */}
             <ThreeJSGlobe
                 continentsData={[
                     {
@@ -112,6 +113,7 @@ const KeplerExamplePage = ({}: ThreeJSExampleProps) => {
                     },
                 ]}
             />
+            {/* END Main globe component */}
 
             {/*<CounterTestSection />*/}
 
