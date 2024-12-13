@@ -4,7 +4,7 @@ let xValues = [];
 let yValues = [];
 let zValues = [];
 
-export default class threeGeoJSON {
+export default class ThreeGeoJSON {
     constructor(scene) {
         this.scene = scene;
     }

@@ -18,7 +18,7 @@ import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer';
 
 // Utils
-import threeGeoJSON from './threeGeoJSON';
+import ThreeGeoJSON from './ThreeGeoJSON';
 
 // Components
 import ThreeJSMapDataTooltip from '@molecules/ThreeJSMapDataTooltip';
@@ -508,7 +508,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
         );
         $renderer.current.setSize($width.current, $height.current);
         $globeRef.current.appendChild($renderer.current.domElement);
-        $threeGeoJSON.current = new threeGeoJSON($scene.current);
+        $threeGeoJSON.current = new ThreeGeoJSON($scene.current);
 
         $labelRenderer.current = new CSS2DRenderer();
         $labelRenderer.current.setSize($width.current, $height.current);
