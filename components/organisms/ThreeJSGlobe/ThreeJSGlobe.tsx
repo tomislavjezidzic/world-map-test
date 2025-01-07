@@ -117,8 +117,8 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
 
     useGSAP(() => {
         if ($globeRef.current) {
-            const fromColor = new THREE.Color(0x33312e);
-            const toColor = new THREE.Color(0x33312e);
+            const fromColor = new THREE.Color(0x33312E);
+            const toColor = new THREE.Color(0x33312E);
             ScrollTrigger.create({
                 trigger: $globeRef.current,
                 start: `top ${isMobile ? '50%' : '30%'}`,
@@ -262,7 +262,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
         const mesh = new THREE.Mesh(
             geometry,
             new THREE.MeshBasicMaterial({
-                color: new THREE.Color(0x3fdbed),
+                color: new THREE.Color(0x33312E),
                 side: THREE.BackSide,
                 transparent: true,
                 opacity: 0,
@@ -312,7 +312,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
 
     const createContinents = useCallback(() => {
         $threeGeoJSON.current.drawThreeGeo(continentData, 200, 'sphere', {
-            color: 0x33312E,
+            color: 0x33312e,
             width: $width.current,
             height: $height.current,
             name: 'continent',
@@ -480,7 +480,12 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
         $width.current = $globeRef.current.offsetWidth;
         $height.current = $globeRef.current.offsetHeight;
 
-        $camera.current = new THREE.PerspectiveCamera(30, $width.current / $height.current, 1, 1100);
+        $camera.current = new THREE.PerspectiveCamera(
+            30,
+            $width.current / $height.current,
+            1,
+            1100
+        );
 
         $camera.current.position.z = 1000;
 
@@ -495,7 +500,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
         $sphere.current = new THREE.Mesh(geometry, material);
         $scene.current.add($sphere.current);
 
-        const pointGeometry = new THREE.PlaneGeometry(1, 1);
+        const pointGeometry = new THREE.CircleGeometry(0.5, 8);
         $point.current = new THREE.Mesh(pointGeometry);
 
         $renderer.current = new THREE.WebGLRenderer({
@@ -503,9 +508,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
             antialias: true,
         });
 
-        $renderer.current.setPixelRatio(
-            window.devicePixelRatio > 1 ? Math.min(2.5, window.devicePixelRatio) : 1
-        );
+        $renderer.current.setPixelRatio(2.5);
         $renderer.current.setSize($width.current, $height.current);
         $globeRef.current.appendChild($renderer.current.domElement);
         $threeGeoJSON.current = new ThreeGeoJSON($scene.current);
