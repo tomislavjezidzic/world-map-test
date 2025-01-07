@@ -117,8 +117,8 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
 
     useGSAP(() => {
         if ($globeRef.current) {
-            const fromColor = new THREE.Color(0x3fdbed);
-            const toColor = new THREE.Color(0xf9f9f8);
+            const fromColor = new THREE.Color(0x33312e);
+            const toColor = new THREE.Color(0x33312e);
             ScrollTrigger.create({
                 trigger: $globeRef.current,
                 start: `top ${isMobile ? '50%' : '30%'}`,
@@ -312,14 +312,14 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
 
     const createContinents = useCallback(() => {
         $threeGeoJSON.current.drawThreeGeo(continentData, 200, 'sphere', {
-            color: 0x3fdbed,
+            color: 0x33312E,
             width: $width.current,
             height: $height.current,
             name: 'continent',
         });
 
         $threeGeoJSON.current.drawThreeGeo(graticules, 200, 'sphere', {
-            color: 0x575654,
+            color: 0xadacac,
             width: $width.current,
             height: $height.current,
             name: 'graticule',
@@ -440,27 +440,27 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
     };
 
     const handleGlobeRotationCompletion = useCallback(() => {
-        if ($activePoint.current !== null) return;
-        const polarAngleOffset = $pi.current / 2;
-        const currentPolarAngle = $controls.current.getPolarAngle() - polarAngleOffset;
-
-        gsap.fromTo(
-            $controls.current,
-            {
-                minPolarAngle: polarAngleOffset + currentPolarAngle,
-                maxPolarAngle: polarAngleOffset + currentPolarAngle,
-            },
-            {
-                minPolarAngle: polarAngleOffset,
-                maxPolarAngle: polarAngleOffset,
-                duration: 0.5,
-                ease: 'power4.out',
-                onComplete: () => {
-                    $controls.current.minPolarAngle = 0;
-                    $controls.current.maxPolarAngle = $pi.current;
-                },
-            }
-        );
+        // if ($activePoint.current !== null) return;
+        // const polarAngleOffset = $pi.current / 2;
+        // const currentPolarAngle = $controls.current.getPolarAngle() - polarAngleOffset;
+        //
+        // gsap.fromTo(
+        //     $controls.current,
+        //     {
+        //         minPolarAngle: polarAngleOffset + currentPolarAngle,
+        //         maxPolarAngle: polarAngleOffset + currentPolarAngle,
+        //     },
+        //     {
+        //         minPolarAngle: polarAngleOffset,
+        //         maxPolarAngle: polarAngleOffset,
+        //         duration: 0.5,
+        //         ease: 'power4.out',
+        //         onComplete: () => {
+        //             $controls.current.minPolarAngle = 0;
+        //             $controls.current.maxPolarAngle = $pi.current;
+        //         },
+        //     }
+        // );
     }, [$activePoint.current]);
 
     useEffect(() => {
@@ -488,7 +488,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
 
         const geometry = new THREE.SphereGeometry(199, 40, 30);
         const material = new THREE.MeshBasicMaterial({
-            color: 0x2d2c2c,
+            color: 0xffffff,
             transparent: true,
             opacity: 0,
         });
@@ -523,7 +523,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
         $controls.current.update();
         $controls.current.enableDamping = true;
         $controls.current.autoRotate = true;
-        $controls.current.autoRotateSpeed = 0.3;
+        $controls.current.autoRotateSpeed = 3;
         $controls.current.enableZoom = false;
         $controls.current.enablePan = false;
         $controls.current.dampingFactor = 0.05;
@@ -641,7 +641,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
             </div>
 
             {/* TODO: remove this and implement statistics component */}
-            <GlobeDataTestSection />
+            {/*<GlobeDataTestSection />*/}
         </div>
     );
 };

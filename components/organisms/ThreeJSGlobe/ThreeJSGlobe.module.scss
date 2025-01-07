@@ -57,9 +57,11 @@
     height: 100%;
     z-index: 10;
     pointer-events: none;
+    display: none;
 }
 
 .marker {
+    display: none;
     border: none;
     text-align: left;
     margin: 0;

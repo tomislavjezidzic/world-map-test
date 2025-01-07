@@ -179,7 +179,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
                     height: 24,
                     centerX: am5.p50,
                     centerY: am5.p50,
-                    fill: am5.color(0x2d2c2c),
+                    fill: am5.color(0xffffff),
                 })
             );
 
@@ -288,7 +288,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
         $continentsSeries.current.mapPolygons.template.setAll({
             toggleKey: 'active',
             interactive: true,
-            fill: am5.color(0x2d2c2c),
+            fill: am5.color(0xffffff),
             stroke: am5.color(0x3fdbed),
             strokeOpacity: 0,
             strokeWidth: 1,
@@ -319,7 +319,7 @@ const FlatMap = ({ continentsData }: FlatMapProps) => {
         );
 
         $backgroundSeries.current.mapPolygons.template.setAll({
-            fill: am5.color(0x2d2c2c),
+            fill: am5.color(0xffffff),
             stroke: am5.color(0x575654),
             strokeWidth: 1,
         });
