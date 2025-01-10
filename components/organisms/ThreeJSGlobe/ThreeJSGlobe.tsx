@@ -118,7 +118,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
     useGSAP(() => {
         if ($globeRef.current) {
             const fromColor = new THREE.Color(0x3fdbed);
-            const toColor = new THREE.Color(0xf9f9f8);
+            const toColor = new THREE.Color(0xb6b4af);
             ScrollTrigger.create({
                 trigger: $globeRef.current,
                 start: `top ${isMobile ? '50%' : '30%'}`,
@@ -480,7 +480,12 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
         $width.current = $globeRef.current.offsetWidth;
         $height.current = $globeRef.current.offsetHeight;
 
-        $camera.current = new THREE.PerspectiveCamera(30, $width.current / $height.current, 1, 1100);
+        $camera.current = new THREE.PerspectiveCamera(
+            30,
+            $width.current / $height.current,
+            1,
+            1100
+        );
 
         $camera.current.position.z = 1000;
 
