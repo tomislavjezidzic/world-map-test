@@ -646,7 +646,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
             </div>
 
             {/* TODO: remove this and implement statistics component */}
-            <GlobeDataTestSection />
+            <GlobeDataTestSection play={labelsLoaded} />
         </div>
     );
 };
