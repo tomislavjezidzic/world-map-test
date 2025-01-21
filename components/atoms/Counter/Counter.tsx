@@ -10,9 +10,10 @@ if (typeof window !== 'undefined') {
 
 interface CounterProps {
     children: ReactNode;
+    trigger?: string;
 }
 
-const Counter = ({ children }: CounterProps) => {
+const Counter = ({ children, trigger = '80%' }: CounterProps) => {
     const $element = useRef(null);
 
     useGSAP(() => {
@@ -39,7 +40,7 @@ const Counter = ({ children }: CounterProps) => {
 
             ScrollTrigger.create({
                 trigger: $element.current,
-                start: 'top 80%',
+                start: `top ${trigger}`,
                 once: true,
                 onEnter: () => {
                     gsap.to($element.current, {

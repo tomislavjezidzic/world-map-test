@@ -121,7 +121,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
             const toColor = new THREE.Color(0xd1cec7);
             ScrollTrigger.create({
                 trigger: $globeRef.current,
-                start: `top ${isMobile ? '50%' : '30%'}`,
+                start: `top ${isMobile ? '60%' : '60%'}`,
                 end: 'bottom center',
                 once: true,
                 onEnter: () => {
