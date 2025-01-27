@@ -94,7 +94,7 @@ const GlobeDataTestSection = ({ play = false }: GlobeDataTestSectionProps) => {
                     <div className={cn(styles.row, 'js-fade-item')}>
                         <span className={cn('u-a1', 'u-fw-400')}>Unique humans</span>
 
-                        <p className={'u-a4'}>
+                        <p className="u-a4">
                             <span className="js-counter-item">10,475,624</span>
                         </p>
                     </div>
