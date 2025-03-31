@@ -470,6 +470,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
         );
         if ($controls.current) {
             $controls.current.addEventListener('end', debouncedHandleGlobeRotationCompletion);
+            $controls.current.addEventListener('end', debouncedHandleGlobeRotationCompletion);
         }
         return () => {
             $controls?.current?.removeEventListener('end', debouncedHandleGlobeRotationCompletion);
@@ -508,7 +509,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
             antialias: true,
         });
 
-        $renderer.current.setPixelRatio(Math.max(4, window.devicePixelRatio));
+        $renderer.current.setPixelRatio(Math.max(3, window.devicePixelRatio));
         $renderer.current.setSize($width.current, $height.current);
         $globeRef.current.appendChild($renderer.current.domElement);
         $threeGeoJSON.current = new ThreeGeoJSON($scene.current);
