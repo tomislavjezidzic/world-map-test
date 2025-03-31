@@ -501,7 +501,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
         $sphere.current = new THREE.Mesh(geometry, material);
         $scene.current.add($sphere.current);
 
-        const pointGeometry = new THREE.CircleGeometry(0.5, 16);
+        const pointGeometry = new THREE.CircleGeometry(0.5, 32);
         $point.current = new THREE.Mesh(pointGeometry);
 
         $renderer.current = new THREE.WebGLRenderer({
