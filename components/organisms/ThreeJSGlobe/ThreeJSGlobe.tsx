@@ -306,7 +306,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
         $camera.current.aspect = globeWidth / globeHeight;
         $camera.current.updateProjectionMatrix();
 
-        $renderer.current.setSize(globeWidth * 2, globeHeight * 2);
+        $renderer.current.setSize(globeWidth, globeHeight);
         $renderer.current.setViewport(0, 0, globeWidth, globeHeight);
         $renderer.current.domElement.style.width = `${globeWidth}px`;
         $renderer.current.domElement.style.height = `${globeHeight}px`;
@@ -504,16 +504,22 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
         $sphere.current = new THREE.Mesh(geometry, material);
         $scene.current.add($sphere.current);
 
-        const pointGeometry = new THREE.CircleGeometry(0.5, 32);
+        const pointGeometry = new THREE.CircleGeometry(0.6, 32);
         $point.current = new THREE.Mesh(pointGeometry);
 
         $renderer.current = new THREE.WebGLRenderer({
             alpha: true,
             antialias: true,
+            powerPreference: 'high-performance',
+            precision: 'highp',
         });
 
-        $renderer.current.setPixelRatio(3);
-        $renderer.current.setSize($width.current * 2, $height.current * 2);
+        $renderer.current.setPixelRatio(Math.max(3, window.devicePixelRatio));
+        if (window.innerWidth < 1920) {
+            $renderer.current.setPixelRatio(Math.max(4, window.devicePixelRatio));
+        }
+
+        $renderer.current.setSize($width.current, $height.current);
         $renderer.current.setViewport(0, 0, $width.current, $height.current);
         $renderer.current.domElement.style.width = `${$width.current}px`;
         $renderer.current.domElement.style.height = `${$height.current}px`;
