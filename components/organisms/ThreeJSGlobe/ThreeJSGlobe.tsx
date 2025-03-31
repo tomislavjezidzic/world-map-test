@@ -306,7 +306,10 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
         $camera.current.aspect = globeWidth / globeHeight;
         $camera.current.updateProjectionMatrix();
 
-        $renderer.current.setSize(globeWidth, globeHeight);
+        $renderer.current.setSize(globeWidth * 2, globeHeight * 2);
+        $renderer.current.setViewport(0, 0, globeWidth, globeHeight);
+        $renderer.current.domElement.style.width = `${globeWidth}px`;
+        $renderer.current.domElement.style.height = `${globeHeight}px`;
         $labelRenderer.current.setSize(globeWidth, globeHeight);
     }, [$camera, $globeRef, $labelRenderer, $renderer]);
 
@@ -509,8 +512,11 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
             antialias: true,
         });
 
-        $renderer.current.setPixelRatio(Math.max(3, window.devicePixelRatio));
-        $renderer.current.setSize($width.current, $height.current);
+        $renderer.current.setPixelRatio(3);
+        $renderer.current.setSize($width.current * 2, $height.current * 2);
+        $renderer.current.setViewport(0, 0, $width.current, $height.current);
+        $renderer.current.domElement.style.width = `${$width.current}px`;
+        $renderer.current.domElement.style.height = `${$height.current}px`;
         $globeRef.current.appendChild($renderer.current.domElement);
         $threeGeoJSON.current = new ThreeGeoJSON($scene.current);
 
