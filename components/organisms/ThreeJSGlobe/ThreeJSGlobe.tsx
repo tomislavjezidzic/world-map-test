@@ -117,8 +117,8 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
 
     useGSAP(() => {
         if ($globeRef.current) {
-            const fromColor = new THREE.Color(0x33312E);
-            const toColor = new THREE.Color(0x33312E);
+            const fromColor = new THREE.Color(0x3fdbed);
+            const toColor = new THREE.Color(0xd1cec7);
             ScrollTrigger.create({
                 trigger: $globeRef.current,
                 start: `top ${isMobile ? '50%' : '30%'}`,
@@ -128,7 +128,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
                     const tl = gsap.timeline().add('start');
 
                     tl.from(
-                        $scene.current.rotation,
+                        $scene.current?.rotation,
                         {
                             y: -$pi.current / 2,
                             duration: 3,
@@ -137,7 +137,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
                         'start'
                     )
                         .from(
-                            $scene.current.scale,
+                            $scene.current?.scale,
                             {
                                 x: 0.5,
                                 y: 0.5,
@@ -262,7 +262,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
         const mesh = new THREE.Mesh(
             geometry,
             new THREE.MeshBasicMaterial({
-                color: new THREE.Color(0x33312E),
+                color: new THREE.Color(0x3fdbed),
                 side: THREE.BackSide,
                 transparent: true,
                 opacity: 0,
@@ -312,14 +312,14 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
 
     const createContinents = useCallback(() => {
         $threeGeoJSON.current.drawThreeGeo(continentData, 200, 'sphere', {
-            color: 0x33312e,
+            color: 0x3fdbed,
             width: $width.current,
             height: $height.current,
             name: 'continent',
         });
 
         $threeGeoJSON.current.drawThreeGeo(graticules, 200, 'sphere', {
-            color: 0xadacac,
+            color: 0x575654,
             width: $width.current,
             height: $height.current,
             name: 'graticule',
@@ -493,7 +493,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
 
         const geometry = new THREE.SphereGeometry(199, 40, 30);
         const material = new THREE.MeshBasicMaterial({
-            color: 0xffffff,
+            color: 0x2d2c2c,
             transparent: true,
             opacity: 0,
         });
