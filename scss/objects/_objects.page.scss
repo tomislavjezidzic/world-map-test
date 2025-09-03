@@ -1,20 +1,14 @@
 .o-page {
-    background-color: #2d2c2c;
     color: var(--tertiary-color);
-    padding-top: var(--navigation-height);
-    min-height: 100vh;
+    overflow: hidden;
 
-    header,
-    section,
-    footer {
+    section {
         opacity: 0;
         transition: opacity 0.25s;
     }
 
     &--show {
-        header,
-        section,
-        footer {
+        section {
             opacity: 1;
         }
     }

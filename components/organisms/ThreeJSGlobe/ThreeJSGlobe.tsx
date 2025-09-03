@@ -22,7 +22,6 @@ import ThreeGeoJSON from './ThreeGeoJSON';
 
 // Components
 import ThreeJSMapDataTooltip from '@molecules/ThreeJSMapDataTooltip';
-import GlobeDataTestSection from '@organisms/GlobeDataTestSection'; // should be replaced
 
 // Register GSAP plugins
 import gsap from 'gsap';
@@ -88,33 +87,6 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
     const [touchStart, setTouchStart] = useState<Date | null>(null);
     const [isMobile, setIsMobile] = useState(false);
 
-    // useEffect(() => {
-    //     const filteredData = [];
-    //
-    //     for (let i = 0; i < locationsData.length; i++) {
-    //         const point = locationsData[i];
-    //         let keepPoint = true;
-    //
-    //         for (let j = 0; j < locationsData.length; j++) {
-    //             if (i !== j) {
-    //                 const otherPoint = locationsData[j];
-    //                 const latDiff = Math.abs(point.lat - otherPoint.lat);
-    //                 const lngDiff = Math.abs(point.lng - otherPoint.lng);
-    //
-    //                 if (latDiff < 0.05 && lngDiff < 0.05) {
-    //                     keepPoint = false;
-    //                     break;
-    //                 }
-    //             }
-    //         }
-    //
-    //         if (keepPoint) {
-    //             filteredData.push(point);
-    //         }
-    //     }
-    //     console.log(filteredData);
-    // }, []);
-
     useGSAP(() => {
         if ($globeRef.current) {
             const fromColor = new THREE.Color(0x3fdbed);
@@ -178,23 +150,6 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
                             ease: 'none',
                             duration: 1,
                             delay: 1 + 0.7 * index,
-                        });
-
-                        gsap.to(fromColor, {
-                            r: toColor.r,
-                            g: toColor.g,
-                            b: toColor.b,
-                            ease: 'none',
-                            duration: 1,
-                            delay: 2 + 0.7 * index,
-                            onUpdate: () => {
-                                // @ts-ignore
-                                group.material.color = new THREE.Color(
-                                    fromColor.r,
-                                    fromColor.g,
-                                    fromColor.b
-                                );
-                            },
                         });
                     });
 
@@ -312,14 +267,14 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
 
     const createContinents = useCallback(() => {
         $threeGeoJSON.current.drawThreeGeo(continentData, 200, 'sphere', {
-            color: 0x3fdbed,
+            color: 0x2d2c2c,
             width: $width.current,
             height: $height.current,
             name: 'continent',
         });
 
         $threeGeoJSON.current.drawThreeGeo(graticules, 200, 'sphere', {
-            color: 0x575654,
+            color: 0x9d9b94,
             width: $width.current,
             height: $height.current,
             name: 'graticule',
@@ -493,7 +448,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
 
         const geometry = new THREE.SphereGeometry(199, 40, 30);
         const material = new THREE.MeshBasicMaterial({
-            color: 0x2d2c2c,
+            color: 0xf3f2f0,
             transparent: true,
             opacity: 0,
         });
@@ -644,9 +599,6 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
                     })}
                 </div>
             </div>
-
-            {/* TODO: remove this and implement statistics component */}
-            <GlobeDataTestSection play={labelsLoaded} />
         </div>
     );
 };

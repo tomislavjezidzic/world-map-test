@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AppProps as NextAppProps } from 'next/app';
 import Fonts from '@organisms/layout/Fonts';
-import SeoHead from '@organisms/layout/SeoHead';
 import 'scss/style.scss';
-import Navigation from '@organisms/layout/Navigation';
 import { useRouter } from 'next/router';
 import cn from 'classnames';
 
@@ -32,14 +30,11 @@ const App = ({ Component, pageProps }: AppProps) => {
     return (
         <>
             <Fonts />
-            <SeoHead title={pageProps.title} />
             <main
                 className={cn('o-page', {
                     'o-page--show': isReady,
                 })}
             >
-                <Navigation />
-
                 <Component {...pageProps} />
             </main>
         </>

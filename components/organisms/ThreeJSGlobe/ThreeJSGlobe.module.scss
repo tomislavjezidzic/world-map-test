@@ -1,8 +1,3 @@
-.wrapper {
-    position: relative;
-    min-height: 56.25vw;
-}
-
 .main {
     position: relative;
     width: 100%;
@@ -10,8 +5,8 @@
     padding-top: 56.25%;
     z-index: 1;
 
-    @media only screen and (max-width: 800px) {
-        padding-top: 100%;
+    @include mq(sm-md) {
+        padding-top: percentage(4, 3);
     }
 }
 
@@ -28,6 +23,14 @@
 
     canvas {
         pointer-events: none !important;
+    }
+
+    @include mq(sm-md) {
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 90%;
+        height: 90%;
     }
 }
 
