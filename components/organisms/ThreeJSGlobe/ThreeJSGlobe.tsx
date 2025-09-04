@@ -46,20 +46,22 @@ interface ThreeJSGlobeProps {
     /**
      * @type {{
      * id: string;
-     * countries: string[];
+     * countries: string;
      * humans: string;
      * users: string;
      * transactions: string;
+     * tokens: string
      * orbs: string
      * }[]}
      */
     continentsData: {
         id: string;
-        countries: string[];
+        countries: string;
         humans: string;
         users: string;
         transactions: string;
-        orbs: string;
+        tokens: string;
+        orbs?: string;
     }[];
 }
 

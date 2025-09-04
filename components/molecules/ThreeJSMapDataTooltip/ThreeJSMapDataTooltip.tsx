@@ -5,15 +5,17 @@ import { useCallback, useRef } from 'react';
 // GSAP
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
+import { useIsMobile } from '@hooks/useIsMobile';
 
 interface ThreeJSMapDataTooltipProps {
     isActive: boolean;
     name?: string;
     data?: {
-        countries?: string[];
+        countries?: string;
         humans?: string;
         users?: string;
         transactions?: string;
+        tokens?: string;
         orbs?: string;
     };
 }
@@ -26,6 +28,7 @@ const ThreeJSMapDataTooltip = ({
     const $mainWrapper = useRef(null);
     const $content = useRef(null);
     const $textRefs = useRef<HTMLElement[]>([]);
+    const isMobile = useIsMobile();
 
     const handleOpen = useCallback(() => {
         if (!$content.current || !$textRefs.current) return;
@@ -111,7 +114,7 @@ const ThreeJSMapDataTooltip = ({
 
                             {data?.countries && (
                                 <p className={styles.countries} ref={el => setRef(el)}>
-                                    {data.countries?.join(', ')}.
+                                    {data.countries}.
                                 </p>
                             )}
 
@@ -132,20 +135,31 @@ const ThreeJSMapDataTooltip = ({
                                     </li>
                                 )}
 
-                                {data?.transactions && (
+                                {data?.tokens && (
                                     <li ref={el => setRef(el)}>
-                                        <p>Wallet transactions</p>
+                                        <p>Tokens distributed</p>
 
-                                        <span>{data.transactions}</span>
+                                        <span>{data.tokens}</span>
                                     </li>
                                 )}
 
-                                {data?.orbs && (
-                                    <li ref={el => setRef(el)}>
-                                        <p>Active Orbs</p>
+                                {!isMobile && (
+                                    <>
+                                        {data?.transactions && (
+                                            <li ref={el => setRef(el)}>
+                                                <p>Wallet transactions</p>
 
-                                        <span>{data.orbs}</span>
-                                    </li>
+                                                <span>{data.transactions}</span>
+                                            </li>
+                                        )}
+
+                                        {data?.orbs && (
+                                            <li ref={el => setRef(el)}>
+                                                <p>Active Orbs</p>
+                                                <span>{data.orbs}</span>
+                                            </li>
+                                        )}
+                                    </>
                                 )}
                             </ul>
                         </div>
