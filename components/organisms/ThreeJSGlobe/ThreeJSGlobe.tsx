@@ -330,7 +330,9 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
             const beta = $controls.current.getPolarAngle() - $pi.current / 2;
 
             // Normalize the current angle to [-π, π] range
-            const normalizedAlpha = ((currentAlpha % (2 * $pi.current)) + 3 * $pi.current) % (2 * $pi.current) - $pi.current;
+            const normalizedAlpha =
+                (((currentAlpha % (2 * $pi.current)) + 3 * $pi.current) % (2 * $pi.current)) -
+                $pi.current;
 
             let x = $pi.current / 2 - lng;
             let targetAzimuth;
@@ -338,9 +340,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
             if (index === null || index === activePoint) {
                 targetAzimuth = normalizedAlpha;
             } else {
-                targetAzimuth = isMobile
-                    ? 1 + lat + $pi.current / 3
-                    : lat + $pi.current / 3;
+                targetAzimuth = isMobile ? 1 + lat + $pi.current / 3 : lat + $pi.current / 3;
 
                 // Calculate the shortest rotation path
                 const diff = targetAzimuth - normalizedAlpha;
@@ -450,8 +450,9 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
         $scene.current = new THREE.Scene();
 
         const geometry = new THREE.SphereGeometry(199, 40, 30);
+        // globe material
         const material = new THREE.MeshBasicMaterial({
-            color: 0xf3f2f0,
+            color: 0xfff2f0,
             transparent: true,
             opacity: 0,
         });
