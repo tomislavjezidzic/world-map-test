@@ -452,7 +452,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
         const geometry = new THREE.SphereGeometry(199, 40, 30);
         // globe material
         const material = new THREE.MeshBasicMaterial({
-            color: 0xfff2f0,
+            color: 0xf6f5f3,
             transparent: true,
             opacity: 0,
         });
