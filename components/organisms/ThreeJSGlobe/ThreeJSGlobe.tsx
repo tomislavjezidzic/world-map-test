@@ -326,32 +326,42 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
                 return;
             }
 
-            const alpha = $controls.current.getAzimuthalAngle();
+            const currentAlpha = $controls.current.getAzimuthalAngle();
             const beta = $controls.current.getPolarAngle() - $pi.current / 2;
 
+            // Normalize the current angle to [-π, π] range
+            const normalizedAlpha = ((currentAlpha % (2 * $pi.current)) + 3 * $pi.current) % (2 * $pi.current) - $pi.current;
+
             let x = $pi.current / 2 - lng;
+            let targetAzimuth;
+
+            if (index === null || index === activePoint) {
+                targetAzimuth = normalizedAlpha;
+            } else {
+                targetAzimuth = isMobile
+                    ? 1 + lat + $pi.current / 3
+                    : lat + $pi.current / 3;
+
+                // Calculate the shortest rotation path
+                const diff = targetAzimuth - normalizedAlpha;
+                if (diff > $pi.current) {
+                    targetAzimuth -= 2 * $pi.current;
+                } else if (diff < -$pi.current) {
+                    targetAzimuth += 2 * $pi.current;
+                }
+            }
 
             gsap.fromTo(
                 $controls.current,
                 {
-                    minAzimuthAngle: alpha,
-                    maxAzimuthAngle: alpha,
+                    minAzimuthAngle: normalizedAlpha,
+                    maxAzimuthAngle: normalizedAlpha,
                     minPolarAngle: $pi.current / 2 + beta,
                     maxPolarAngle: $pi.current / 2 + beta,
                 },
                 {
-                    minAzimuthAngle:
-                        index === null || index === activePoint
-                            ? alpha
-                            : isMobile
-                              ? 1 + lat + $pi.current / 3
-                              : lat + $pi.current / 3,
-                    maxAzimuthAngle:
-                        index === null || index === activePoint
-                            ? alpha
-                            : isMobile
-                              ? 1 + lat + $pi.current / 3
-                              : lat + $pi.current / 3,
+                    minAzimuthAngle: targetAzimuth,
+                    maxAzimuthAngle: targetAzimuth,
                     minPolarAngle: isMobile
                         ? index === null || index === activePoint
                             ? $pi.current / 2
@@ -476,7 +486,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
         $controls.current.update();
         $controls.current.enableDamping = true;
         $controls.current.autoRotate = true;
-        $controls.current.autoRotateSpeed = 0.3;
+        $controls.current.autoRotateSpeed = 0.4;
         $controls.current.enableZoom = false;
         $controls.current.enablePan = false;
         $controls.current.dampingFactor = 0.05;
