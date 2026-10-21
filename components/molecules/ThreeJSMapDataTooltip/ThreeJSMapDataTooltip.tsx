@@ -1,6 +1,6 @@
 import cn from 'classnames';
 import styles from './ThreeJSMapDataTooltip.module.scss';
-import { useCallback, useRef } from 'react';
+import { memo, useCallback, useRef } from 'react';
 
 // GSAP
 import gsap from 'gsap';
@@ -27,15 +27,19 @@ const ThreeJSMapDataTooltip = ({
 }: ThreeJSMapDataTooltipProps) => {
     const $mainWrapper = useRef(null);
     const $content = useRef(null);
-    const $textRefs = useRef<HTMLElement[]>([]);
     const isMobile = useIsMobile();
 
-    const handleOpen = useCallback(() => {
-        if (!$content.current || !$textRefs.current) return;
+    // Elements revealed with a stagger, queried fresh so the list always matches the DOM
+    const getTextElements = () =>
+        $content.current.querySelectorAll('[data-reveal]') as NodeListOf<HTMLElement>;
 
+    const handleOpen = useCallback(() => {
+        if (!$content.current) return;
+
+        const textElements = getTextElements();
         let height = 0;
 
-        gsap.set($textRefs.current, {
+        gsap.set(textElements, {
             autoAlpha: 0,
         });
 
@@ -52,7 +56,7 @@ const ThreeJSMapDataTooltip = ({
                             height: height,
                         });
 
-                        gsap.to($textRefs.current, {
+                        gsap.to(textElements, {
                             autoAlpha: 1,
                             delay: 0.1,
                             stagger: 0.07,
@@ -64,13 +68,13 @@ const ThreeJSMapDataTooltip = ({
     }, []);
 
     const handleClose = useCallback(() => {
-        if (!$content.current || !$textRefs.current) return;
+        if (!$content.current) return;
 
         gsap.to($content.current, {
             height: 0,
         });
 
-        gsap.to($textRefs.current, {
+        gsap.to(getTextElements(), {
             autoAlpha: 0,
         });
     }, []);
@@ -85,15 +89,6 @@ const ThreeJSMapDataTooltip = ({
         }
     }, [isActive]);
 
-    const setRef = useCallback(
-        (el: HTMLElement) => {
-            if (!$textRefs.current) return;
-
-            void $textRefs.current.push(el);
-        },
-        [$textRefs]
-    );
-
     return (
         <div ref={$mainWrapper} className={styles.wrapper}>
             <div className={styles.main}>
@@ -107,20 +102,20 @@ const ThreeJSMapDataTooltip = ({
                     <div className={styles.content} ref={$content}>
                         <div className={styles.contentInner}>
                             {name && (
-                                <h3 className={styles.continent} ref={el => setRef(el)}>
+                                <h3 className={styles.continent} data-reveal>
                                     {name}
                                 </h3>
                             )}
 
                             {data?.countries && (
-                                <p className={styles.countries} ref={el => setRef(el)}>
+                                <p className={styles.countries} data-reveal>
                                     {data.countries}.
                                 </p>
                             )}
 
                             <ul>
                                 {data?.humans && (
-                                    <li ref={el => setRef(el)}>
+                                    <li data-reveal>
                                         <p>Unique humans</p>
 
                                         <span>{data.humans}</span>
@@ -128,7 +123,7 @@ const ThreeJSMapDataTooltip = ({
                                 )}
 
                                 {data?.users && (
-                                    <li ref={el => setRef(el)}>
+                                    <li data-reveal>
                                         <p>World App users</p>
 
                                         <span>{data.users}</span>
@@ -136,7 +131,7 @@ const ThreeJSMapDataTooltip = ({
                                 )}
 
                                 {data?.tokens && (
-                                    <li ref={el => setRef(el)}>
+                                    <li data-reveal>
                                         <p>Tokens distributed</p>
 
                                         <span>{data.tokens}</span>
@@ -146,7 +141,7 @@ const ThreeJSMapDataTooltip = ({
                                 {!isMobile && (
                                     <>
                                         {data?.transactions && (
-                                            <li ref={el => setRef(el)}>
+                                            <li data-reveal>
                                                 <p>Wallet transactions</p>
 
                                                 <span>{data.transactions}</span>
@@ -154,7 +149,7 @@ const ThreeJSMapDataTooltip = ({
                                         )}
 
                                         {data?.orbs && (
-                                            <li ref={el => setRef(el)}>
+                                            <li data-reveal>
                                                 <p>Active Orbs</p>
                                                 <span>{data.orbs}</span>
                                             </li>
@@ -170,4 +165,4 @@ const ThreeJSMapDataTooltip = ({
     );
 };
 
-export default ThreeJSMapDataTooltip;
+export default memo(ThreeJSMapDataTooltip);

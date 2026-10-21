@@ -14,7 +14,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 // THREE.js imports
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer';
 
 // Utils
@@ -28,8 +27,13 @@ import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 
 if (typeof window !== 'undefined') {
-    gsap.registerPlugin(ScrollTrigger, useGSAP);
+    gsap.registerPlugin(useGSAP);
 }
+
+// Reused per-frame scratch objects (avoids allocating in the render loop)
+const _labelPosition = new THREE.Vector3();
+const _occlusionRay = new THREE.Ray();
+const _occluder = new THREE.Sphere();
 
 // Data
 import locationsData from '@public/location-data-reduced.json';
@@ -70,7 +74,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
     const $width = useRef<number>(null);
     const $height = useRef<number>(null);
     const $pi = useRef(Math.PI);
-    const $point = useRef<THREE.Mesh>(null);
+    const $point = useRef<THREE.Object3D>(null);
     const $activePoint = useRef<number | null>(null);
     const $threeGeoJSON = useRef(null);
     const $scene = useRef<THREE.Scene>(null);
@@ -82,12 +86,12 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
     const $renderer = useRef<THREE.WebGLRenderer>(null);
     const $labelRenderer = useRef<CSS2DRenderer>(null);
     const $sphere = useRef<THREE.Mesh>(null);
-    const $raycaster = useRef<THREE.Raycaster>(new THREE.Raycaster());
     const $labels = useRef<CSS2DObject[]>([]);
+    const $frame = useRef<number | null>(null);
+    const $touchStart = useRef<number>(0);
     const [activePoint, setActivePoint] = useState<number | null>(null);
     const [labelsLoaded, setLabelsLoaded] = useState(false);
     const [markerClicked, setMarkerClicked] = useState(false);
-    const [touchStart, setTouchStart] = useState<Date | null>(null);
     const isMobile = useIsMobile();
 
     const initialLoad = useCallback(() => {
@@ -155,7 +159,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
     }, [isMobile]);
 
     const animate = useCallback(() => {
-        requestAnimationFrame(animate);
+        $frame.current = requestAnimationFrame(animate);
         $controls.current.update();
         render();
     }, [$camera?.current, $scene.current, $controls.current]);
@@ -171,40 +175,60 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
         };
     }, []);
 
-    const addPoint = useCallback(
-        (latitude: number, longitude: number, geometry: THREE.Geometry) => {
-            if (!$point.current) return;
+    /**
+     * Builds one merged BufferGeometry of 1x1 quads (one per location),
+     * each placed on the globe surface and facing its centre.
+     */
+    const createPointsGeometry = useCallback(
+        (locations: { lat: number | string; lng: number | string }[]) => {
+            const quad = new THREE.PlaneBufferGeometry(1, 1);
+            const quadPositions = quad.attributes.position.array as ArrayLike<number>;
+            const quadIndex = quad.index.array as ArrayLike<number>;
+            const quadVertexCount = quadPositions.length / 3;
 
-            const { x, y, z } = getCoordinates(latitude, longitude);
+            const positions = new Float32Array(locations.length * quadPositions.length);
+            const indices = new Uint32Array(locations.length * quadIndex.length);
+            const vertex = new THREE.Vector3();
 
-            $point.current.position.set(x, y, z);
-            $point.current.lookAt($sphere.current.position);
-            $point.current.updateMatrix();
+            locations.forEach(({ lat, lng }, pointIndex) => {
+                const { x, y, z } = getCoordinates(Number(lat), Number(lng));
 
-            // @ts-ignore
-            geometry.merge($point.current.geometry, $point.current.matrix);
+                $point.current.position.set(x, y, z);
+                $point.current.lookAt($sphere.current.position);
+                $point.current.updateMatrix();
+
+                const vertexOffset = pointIndex * quadVertexCount;
+
+                for (let i = 0; i < quadVertexCount; i++) {
+                    vertex.fromArray(quadPositions, i * 3).applyMatrix4($point.current.matrix);
+                    vertex.toArray(positions, (vertexOffset + i) * 3);
+                }
+
+                for (let i = 0; i < quadIndex.length; i++) {
+                    indices[pointIndex * quadIndex.length + i] = vertexOffset + quadIndex[i];
+                }
+            });
+
+            quad.dispose();
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+
+            return geometry;
         },
-        [$point.current, getCoordinates, $sphere.current]
+        [getCoordinates]
     );
 
     const addData = useCallback((locationData: any[]) => {
-        const processLocationData = (index: number) => {
-            if (index >= locationData.length) return;
-
-            const geometry = new THREE.Geometry();
-            for (const location of locationData[index]) {
-                const { lat, lng } = location;
-                addPoint(lat, lng, geometry);
-            }
-
-            processLocationData(index + 1);
-            createMesh(geometry);
-        };
-
-        processLocationData(0);
+        // Meshes are created last batch first (render order matters while the
+        // batches fade in one after another, see `initialLoad`)
+        for (let index = locationData.length - 1; index >= 0; index--) {
+            createMesh(createPointsGeometry(locationData[index]));
+        }
     }, []);
 
-    const createMesh = useCallback((geometry: THREE.Geometry) => {
+    const createMesh = useCallback((geometry: THREE.BufferGeometry) => {
         if (!$scene.current) return;
 
         const mesh = new THREE.Mesh(
@@ -228,19 +252,21 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
 
         $camera.current.lookAt($sphere.current.position);
 
+        // Hide labels on the far side of the globe: a label is occluded when the
+        // ray from it towards the camera passes through the globe's sphere.
+        $sphere.current.updateWorldMatrix(true, false);
+        _occluder
+            .copy($sphere.current.geometry.boundingSphere)
+            .applyMatrix4($sphere.current.matrixWorld);
+
         $labels.current.forEach(label => {
-            const labelPosition = label.getWorldPosition(new THREE.Vector3());
-            const cameraPosition = $camera.current.position;
-            const direction = cameraPosition.clone().sub(labelPosition).normalize();
+            label.getWorldPosition(_labelPosition);
+            _occlusionRay.origin.copy(_labelPosition);
+            _occlusionRay.direction.copy($camera.current.position).sub(_labelPosition).normalize();
 
-            $raycaster.current.set(labelPosition, direction);
-            const intersections = $raycaster.current.intersectObject($sphere.current);
-
-            if (intersections.length > 0) {
-                label.element.classList.add('is-hidden');
-            } else {
-                label.element.classList.remove('is-hidden');
-            }
+            // toggle with `force` doesn't touch the DOM when the state is unchanged,
+            // and re-applies the class after React rewrites `className`
+            label.element.classList.toggle('is-hidden', _occlusionRay.intersectsSphere(_occluder));
         });
 
         $renderer.current.render($scene.current, $camera.current);
@@ -449,7 +475,9 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
 
         $scene.current = new THREE.Scene();
 
-        const geometry = new THREE.SphereGeometry(199, 40, 30);
+        const geometry = new THREE.SphereBufferGeometry(199, 40, 30);
+        // used every frame for label occlusion
+        geometry.computeBoundingSphere();
         // globe material
         const material = new THREE.MeshBasicMaterial({
             color: 0xf6f5f3,
@@ -459,8 +487,8 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
         $sphere.current = new THREE.Mesh(geometry, material);
         $scene.current.add($sphere.current);
 
-        const pointGeometry = new THREE.PlaneGeometry(1, 1);
-        $point.current = new THREE.Mesh(pointGeometry);
+        // helper used to orient each location quad towards the globe centre
+        $point.current = new THREE.Object3D();
 
         $renderer.current = new THREE.WebGLRenderer({
             alpha: true,
@@ -504,6 +532,27 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
         };
     }, [isMobile]);
 
+    const stopLoop = useCallback(() => {
+        if ($frame.current === null) return;
+
+        cancelAnimationFrame($frame.current);
+        $frame.current = null;
+    }, []);
+
+    const dispose = useCallback(() => {
+        stopLoop();
+
+        $scene.current?.traverse(object => {
+            const { geometry, material } = object as THREE.Mesh;
+            geometry?.dispose();
+            (Array.isArray(material) ? material : [material]).forEach(m => m?.dispose());
+        });
+
+        $controls.current?.dispose();
+        $renderer.current?.dispose();
+        $renderer.current?.domElement.remove();
+    }, [stopLoop]);
+
     // remove this effect if you have different detection
     useEffect(() => {
         if (
@@ -514,7 +563,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
         )
             return;
 
-        Globe();
+        const removeResizeListener = Globe();
 
         const batchSize = 2000;
 
@@ -526,6 +575,22 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
         addData(splitData);
         animate();
         initialLoad();
+
+        // Only run the render loop while the globe is on screen
+        const observer = new IntersectionObserver(([entry]) => {
+            if (entry.isIntersecting) {
+                if ($frame.current === null) animate();
+            } else {
+                stopLoop();
+            }
+        });
+        observer.observe($globeRef.current);
+
+        return () => {
+            observer.disconnect();
+            removeResizeListener();
+            dispose();
+        };
     }, []);
 
     useEffect(() => {
@@ -575,8 +640,10 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
                                         handleClick(feature.pointCoordinates, i);
                                     }}
                                     onTouchEnd={() => {
-                                        // @ts-ignore
-                                        if (new Date() - touchStart <= 300 && !markerClicked) {
+                                        if (
+                                            Date.now() - $touchStart.current <= 300 &&
+                                            !markerClicked
+                                        ) {
                                             handleClick(feature.pointCoordinates, i);
                                         } else if (activePoint !== null && !markerClicked) {
                                             setActivePoint(null);
@@ -585,7 +652,7 @@ const ThreeJSGlobe = ({ continentsData }: ThreeJSGlobeProps) => {
                                         }
                                     }}
                                     onTouchStart={() => {
-                                        setTouchStart(new Date());
+                                        $touchStart.current = Date.now();
                                     }}
                                 >
                                     <ThreeJSMapDataTooltip

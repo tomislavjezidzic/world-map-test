@@ -4,6 +4,13 @@ let xValues = [];
 let yValues = [];
 let zValues = [];
 
+/**
+ * Draws GeoJSON line data onto a sphere/plane.
+ *
+ * Every line of a single `drawThreeGeo` call is merged into one indexed
+ * `THREE.LineSegments`, so a whole layer (continents, graticules) costs a
+ * single draw call instead of one per ring/segment.
+ */
 export default class ThreeGeoJSON {
     constructor(scene) {
         this.scene = scene;
@@ -12,54 +19,54 @@ export default class ThreeGeoJSON {
     drawThreeGeo(jsonData, radius, shape, options) {
         const geometryArray = this.createGeometryArray(jsonData);
         const conversionFunction = this.getConversionFunctionName(shape);
-        const lineMaterial = new THREE.LineBasicMaterial({
-            color: options.color || 'red',
-        });
+        const positions = [];
+        const indices = [];
+
+        const addLine = coordinates => {
+            const coordinateArray = this.createCoordinateArray(coordinates);
+            for (const point of coordinateArray) {
+                conversionFunction(point, radius, options);
+            }
+            this.appendLine(yValues, zValues, xValues, positions, indices);
+            this.clearArrays();
+        };
 
         for (const geometry of geometryArray) {
             switch (geometry.type) {
-                case 'Point':
-                    conversionFunction(geometry.coordinates, radius, options);
-                    this.drawParticle(yValues[0], zValues[0], xValues[0], options);
-                    break;
-                case 'MultiPoint':
-                    for (const point of geometry.coordinates) {
-                        conversionFunction(point, radius, options);
-                        this.drawParticle(yValues[0], zValues[0], xValues[0], options);
-                    }
-                    break;
                 case 'LineString':
-                    const coordinateArray = this.createCoordinateArray(geometry.coordinates, options);
-                    for (const point of coordinateArray) {
-                        conversionFunction(point, radius, options);
-                    }
-                    this.drawLine(yValues, zValues, xValues, options, lineMaterial);
+                    addLine(geometry.coordinates);
                     break;
                 case 'MultiLineString':
                 case 'Polygon':
                     for (const segment of geometry.coordinates) {
-                        const coordinateArray = this.createCoordinateArray(segment, options);
-                        for (const point of coordinateArray) {
-                            conversionFunction(point, radius, options);
-                        }
-                        this.drawLine(yValues, zValues, xValues, options, lineMaterial);
+                        addLine(segment);
                     }
                     break;
                 case 'MultiPolygon':
                     for (const polygon of geometry.coordinates) {
                         for (const segment of polygon) {
-                            const coordinateArray = this.createCoordinateArray(segment, options);
-                            for (const point of coordinateArray) {
-                                conversionFunction(point, radius, options);
-                            }
-                            this.drawLine(yValues, zValues, xValues, options, lineMaterial);
+                            addLine(segment);
                         }
                     }
                     break;
                 default:
-                    throw new Error('Invalid geoJSON type');
+                    throw new Error(`Unsupported geoJSON type: ${geometry.type}`);
             }
         }
+
+        const lineGeometry = new THREE.BufferGeometry();
+        lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        lineGeometry.setIndex(indices);
+
+        const lineMaterial = new THREE.LineBasicMaterial({
+            color: options.color || 'red',
+        });
+
+        const lines = new THREE.LineSegments(lineGeometry, lineMaterial);
+        lines.name = options.name || '';
+        this.scene.add(lines);
+
+        return lines;
     }
 
     createGeometryArray(geoJson) {
@@ -99,7 +106,7 @@ export default class ThreeGeoJSON {
         return conversionFunction;
     }
 
-    createCoordinateArray(feature, options) {
+    createCoordinateArray(feature) {
         const coordinates = [];
 
         for (let i = 0; i < feature.length; i++) {
@@ -177,46 +184,19 @@ export default class ThreeGeoJSON {
         yValues.push(longitude * (options.width / 2 / 360.0));
     }
 
-    drawParticle(x, y, z, particleOptions) {
-        const particleGeometry = new THREE.Geometry();
-        particleGeometry.vertices.push(new THREE.Vector3(x, y, z));
+    /**
+     * Appends one polyline to the shared buffers as consecutive index pairs,
+     * which renders identically to a `THREE.Line` strip.
+     */
+    appendLine(xValues, yValues, zValues, positions, indices) {
+        const offset = positions.length / 3;
 
-        const particleMaterial = new THREE.ParticleSystemMaterial(particleOptions);
-
-        const particleSystem = new THREE.ParticleSystem(particleGeometry, particleMaterial);
-        this.scene.add(particleSystem);
-
-        this.clearArrays();
-    }
-
-    drawLine(xValues, yValues, zValues, options, lineMaterial) {
-        const lineContainer = new THREE.Object3D();
-        const lineGeometry = new THREE.Geometry();
-        this.createVerticesForGeometry(lineGeometry, xValues, yValues, zValues);
-
-        const line = new THREE.Line(lineGeometry, lineMaterial);
-        line.name = options.name || '';
-        lineContainer.add(line);
-
-        const meshGeometry = new THREE.Geometry();
-        this.createVerticesForGeometry(meshGeometry, xValues, yValues, zValues);
-        const meshMaterial = new THREE.MeshBasicMaterial({
-            transparent: true,
-            opacity: 0,
-            side: THREE.DoubleSide,
-        });
-        const mesh = new THREE.Mesh(meshGeometry, meshMaterial);
-
-        lineContainer.add(mesh);
-        this.scene.add(lineContainer);
-        this.clearArrays();
-    }
-
-    createVerticesForGeometry(geometry, xValues, yValues, zValues) {
         for (let index = 0; index < xValues.length; index++) {
-            const vertex = new THREE.Vector3(xValues[index] ?? 0, yValues[index] ?? 0, zValues[index] ?? 0);
-            geometry.vertices.push(vertex);
-            geometry.faces.push(new THREE.Face3(0, index, index));
+            positions.push(xValues[index] ?? 0, yValues[index] ?? 0, zValues[index] ?? 0);
+
+            if (index > 0) {
+                indices.push(offset + index - 1, offset + index);
+            }
         }
     }
 
